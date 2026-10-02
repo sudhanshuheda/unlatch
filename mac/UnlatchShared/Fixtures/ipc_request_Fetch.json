@@ -1,0 +1,10 @@
+{
+  "call": 8,
+  "msg": {
+    "Fetch": {
+      "id": 12,
+      "version": 41,
+      "dest_dir": "/private/var/folders/xy/T/wharf"
+    }
+  }
+}

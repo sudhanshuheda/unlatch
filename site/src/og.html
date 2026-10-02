@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Martian+Mono:wdth,wght@75..112.5,100..800&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap">
+<style>
+  html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
+  body { background: #ECEEEE; color: #14171C; font-family: "Martian Mono", ui-monospace, Menlo, monospace; }
+  .card { position: absolute; inset: 36px 44px; border-top: 2px solid #14171C; border-bottom: 2px solid #14171C; display: grid; grid-template-columns: 1fr 360px; gap: 40px; }
+  .hd { position: absolute; left: 0; right: 0; top: 12px; display: flex; justify-content: space-between; font-size: 15px; font-weight: 600; }
+  .hd span:nth-child(2) { font-weight: 400; color: #59626C; }
+  .main { padding-top: 70px; }
+  .name { font-size: 17px; color: #343A42; }
+  .name b { color: #14171C; }
+  h1 { margin: 22px 0 0; font-weight: 800; font-size: 118px; line-height: .9; font-stretch: condensed; letter-spacing: -.06em; }
+  .rev { background: #14171C; color: #ECEEEE; padding: 0 .04em 0 .06em; position: relative; }
+  .rev::after { content: ""; position: absolute; left: 100%; top: 0; bottom: 0; width: .38em; background: #B0136A; }
+  .cmd { position: absolute; left: 0; bottom: 26px; display: flex; gap: 0; border: 2px solid #14171C; font-size: 24px; font-weight: 500; }
+  .cmd span { padding: 14px 20px; }
+  .cmd .p { color: #B0136A; padding-right: 0; }
+  .cmd .r { background: #14171C; color: #ECEEEE; font-size: 17px; display: flex; align-items: center; }
+  .fd { margin-top: 70px; background: #fff; border-radius: 12px; box-shadow: 0 1px 0 #14171C14, 0 26px 50px -24px #14171C80; font: 15px/1.2 -apple-system, "Helvetica Neue", Arial, sans-serif; overflow: hidden; }
+  .fd .bar { background: #EEF0F2; padding: 12px 14px; display: flex; gap: 7px; align-items: center; }
+  .fd .bar i { width: 11px; height: 11px; border-radius: 50%; background: #B9BEC5; display: inline-block; }
+  .fd .bar b { margin-left: 12px; font-size: 13px; color: #727983; font-weight: 500; }
+  .fd .bar b em { font-style: normal; color: #1D1F23; font-weight: 600; }
+  .fd .r { display: flex; justify-content: space-between; padding: 8px 16px; color: #1D1F23; }
+  .fd .r:nth-child(odd) { background: #F5F6F8; }
+  .fd .r span { color: #727983; font-size: 13px; }
+  .fd .r.hot { background: #B0136A1C; }
+  .meta { position: absolute; right: 0; bottom: 30px; text-align: right; font-size: 14px; color: #59626C; line-height: 1.7; }
+</style></head>
+<body><div class="card">
+  <div class="hd"><span>{{manpage}}</span><span>{{status}} · {{license}}</span><span>{{manpage}}</span></div>
+  <div class="main">
+    <div class="name"><b>{{wordmark}}</b> - your cloud VM's files in macOS Finder</div>
+    <h1>Your VM,<br>in <span class="rev">Finder.</span></h1>
+    <div class="cmd"><span class="p">$</span><span>{{cli}}</span><span class="r">or paste into your agent</span></div>
+  </div>
+  <div>
+    <div class="fd">
+      <div class="bar"><i></i><i></i><i></i><b>Locations › <em>dev-box</em> › api</b></div>
+      <div class="r hot">latency.png <span>Today at 14:03</span></div>
+      <div class="r">invoices.py <span>Today at 14:02</span></div>
+      <div class="r">test_invoices_export.py <span>Today at 14:02</span></div>
+      <div class="r">pyproject.toml <span>Yesterday at 18:22</span></div>
+      <div class="r">README.md <span>12 Sep 2026</span></div>
+    </div>
+    <div class="meta">for Claude Code and Codex on cloud VMs<br>{{domain}} · coming soon</div>
+  </div>
+</div></body></html>

@@ -1,0 +1,10 @@
+{
+  "call": 9,
+  "msg": {
+    "Fetch": {
+      "id": 12,
+      "version": null,
+      "dest_dir": "/tmp"
+    }
+  }
+}

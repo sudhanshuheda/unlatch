@@ -1,0 +1,246 @@
+# Nightly stress: the unlatchd seeded-churn stress test (crates/unlatchd/tests/stress.rs, with its
+# strict replica ⇄ disk convergence check) over a wide seed range under three timing shapes, and
+# the end-to-end fuzz sweep. Races that show up once in a few thousand seeds (TESTING.md §5
+# #20–#23 were found that way) are out of reach of the per-push CI. Every failing stress seed's
+# panic (with its op log) and every fuzz failure (minimal op sequence) is uploaded as an artifact.
+#
+# Reproduce a stress failure locally:
+#   UNLATCHD_STRESS_SEED=<n> [UNLATCHD_DEBOUNCE_MS=0] [taskset -c 0] \
+#     cargo test --release -p unlatchd --test stress
+name: Nightly stress
+
+on:
+  schedule:
+    - cron: "23 2 * * *"
+  workflow_dispatch:
+    inputs:
+      seeds:
+        description: "Stress seeds per shard (each variant runs 2 shards)"
+        default: "3000"
+      fuzz_seeds:
+        description: "Fuzz seeds (split over 5 shards)"
+        default: "300"
+
+concurrency:
+  group: nightly-stress-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+defaults:
+  run:
+    # `bash -eo pipefail` (the implicit default shell is `bash -e`, without pipefail: a
+    # failing command piped into `tee` would pass).
+    shell: bash
+
+jobs:
+  stress:
+    name: stress ${{ matrix.variant }} shard ${{ matrix.shard }}
+    runs-on: ubuntu-24.04
+    # Keep JOB_MINUTES below equal to this.
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        # default: stock timing. debounce0: UNLATCHD_DEBOUNCE_MS=0 (every inotify read is its own
+        # batch). cpu0: daemon and test pinned to one CPU (`taskset -c`), the CI-runner shape
+        # that found seed 41.
+        variant: [default, debounce0, cpu0]
+        shard: [0, 1]
+    env:
+      SEEDS_PER_SHARD: ${{ inputs.seeds || '3000' }}
+      FAIL_DIR: ${{ github.workspace }}/stress-failures
+      JOB_MINUTES: 45
+      # Left for reporting and the failure-log upload after the seeds are stopped.
+      RESERVE_MINUTES: 6
+    steps:
+      - name: Start the job clock
+        run: echo "JOB_DEADLINE=$(( $(date +%s) + (JOB_MINUTES - RESERVE_MINUTES) * 60 ))" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: nightly-stress
+      - name: Build the stress test
+        run: |
+          exe=$(cargo test --release -p unlatchd --test stress --no-run --message-format=json \
+            | jq -r 'select(.reason == "compiler-artifact" and .target.name == "stress"
+                     and .profile.test) | .executable' | tail -1)
+          test -x "$exe"
+          echo "STRESS_EXE=$exe" >> "$GITHUB_ENV"
+      - name: Run the seeds
+        env:
+          VARIANT: ${{ matrix.variant }}
+          SHARD: ${{ matrix.shard }}
+        run: |
+          set -u
+          case "$VARIANT" in
+            debounce0) export UNLATCHD_DEBOUNCE_MS=0 ;;
+          esac
+          n=$SEEDS_PER_SHARD
+          first=$(( SHARD * n + 1 ))
+          # Whatever the build and setup took, the seeds stop RESERVE_MINUTES before the job
+          # timeout, so the verdicts below and the log upload still run.
+          left=$(( JOB_DEADLINE - $(date +%s) ))
+          if [ "$left" -lt 300 ]; then
+            echo "::error::stress $VARIANT shard $SHARD: only ${left}s left for the seeds after the build"
+            exit 1
+          fi
+          echo "time budget for the seeds: ${left}s"
+          # One test process per CPU, each on its own slice of the shard's seeds (cpu0: each
+          # pinned to its own single CPU — the same one-CPU shape, all CPUs busy).
+          par=$(nproc)
+          per=$(( (n + par - 1) / par ))
+          mkdir -p "$FAIL_DIR" logs
+          pids=()
+          for i in $(seq 0 $(( par - 1 ))); do
+            a=$(( first + i * per ))
+            b=$(( a + per ))
+            last=$(( first + n ))
+            [ "$a" -ge "$last" ] && break
+            [ "$b" -gt "$last" ] && b=$last
+            pin=()
+            [ "$VARIANT" = cpu0 ] && pin=(taskset -c "$i")
+            (
+              UNLATCHD_STRESS_SEEDS="$a..$b" UNLATCHD_STRESS_FAIL_DIR="$FAIL_DIR" \
+                timeout "${left}s" "${pin[@]}" "$STRESS_EXE" --test-threads=1 \
+                > "logs/seeds-$a-$((b - 1)).log" 2>&1
+            ) &
+            pids+=($!)
+            echo "seeds $a..$((b - 1)) → pid $!"
+          done
+          rc=0
+          for p in "${pids[@]}"; do wait "$p" || rc=1; done
+          for f in logs/*.log; do
+            name=$(basename "$f" .log)
+            if grep -q "test result: ok" "$f"; then
+              echo "PASS $name"
+            else
+              v=$(grep -m1 -oE 'failed seeds: \[[0-9, ]*\]' "$f" || echo 'no verdict (timed out or crashed)')
+              echo "::error::stress $VARIANT $name: $v"
+            fi
+          done
+          # Every failed seed (a slice that timed out still wrote the ones it had finished).
+          failed=$(find "$FAIL_DIR" -name 'seed-*.log' | sed -E 's/.*seed-([0-9]+)\.log$/\1/' \
+            | sort -nu | tr '\n' ' ')
+          if [ -n "$failed" ]; then
+            echo "::error::stress $VARIANT shard $SHARD: failed seeds: $failed"
+            rc=1
+          fi
+          exit $rc
+      - name: Upload failure logs
+        # Also when the run was cancelled or hit the job timeout.
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stress-failures-${{ matrix.variant }}-${{ matrix.shard }}
+          path: |
+            stress-failures/
+            logs/
+          if-no-files-found: ignore
+
+  fuzz:
+    name: fuzz shard ${{ matrix.shard }}
+    runs-on: ubuntu-24.04
+    # Keep JOB_MINUTES below equal to this.
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        # Shards 1-5 split the random seeds of `unlatch-bench fuzz --seeds N`; shard 0 runs the
+        # crash/replay matrix and the targeted race scenarios that `--seeds` runs after them.
+        shard: [0, 1, 2, 3, 4, 5]
+    env:
+      FUZZ_SEEDS: ${{ inputs.fuzz_seeds || '300' }}
+      JOB_MINUTES: 45
+      RESERVE_MINUTES: 6
+    steps:
+      - name: Start the job clock
+        run: echo "JOB_DEADLINE=$(( $(date +%s) + (JOB_MINUTES - RESERVE_MINUTES) * 60 ))" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: nightly-fuzz
+      - name: Build unlatchd and unlatch-bench
+        run: |
+          cargo build --release -p unlatchd -p unlatch-bench
+          echo "UNLATCHD_BIN=$PWD/target/release/unlatchd" >> "$GITHUB_ENV"
+          echo "BENCH=$PWD/target/release/unlatch-bench" >> "$GITHUB_ENV"
+      - name: Fuzz
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: |
+          set -u
+          # Short: world dirs hold unix sockets (paths ≤ 108 bytes). (`runner.temp` is not
+          # available in a job's env; the upload step below names the same dir.)
+          export UNLATCH_TMP="$RUNNER_TEMP/fz"
+          mkdir -p "$UNLATCH_TMP" logs
+          left=$(( JOB_DEADLINE - $(date +%s) ))
+          if [ "$left" -lt 300 ]; then
+            echo "::error::fuzz shard $SHARD: only ${left}s left after the build"
+            exit 1
+          fi
+          echo "time budget: ${left}s"
+          if [ "$SHARD" = 0 ]; then
+            rc=0
+            timeout "${left}s" "$BENCH" fuzz --no-random 2>&1 | tee logs/fuzz-matrix.log || rc=$?
+            if [ "$rc" != 0 ]; then
+              fails=$(grep -E '^FAIL ' logs/fuzz-matrix.log | sed -E 's/^FAIL ([^ :]+).*/\1/' \
+                | sort -u | tr '\n' ' ')
+              echo "::error::fuzz matrix (exit $rc): ${fails:-no verdict (timed out or crashed)}"
+            fi
+            exit $rc
+          fi
+          k=$SHARD
+          per=$(( (FUZZ_SEEDS + 4) / 5 ))
+          a=$(( (k - 1) * per + 1 ))
+          b=$(( k * per ))
+          [ "$b" -gt "$FUZZ_SEEDS" ] && b=$FUZZ_SEEDS
+          # A seed usually takes seconds but one with long offline stretches takes minutes, and
+          # most of it is waiting: four at a time, none started with under 5 minutes left, and
+          # any still running at the deadline stopped (reported as skipped, not failed).
+          export JOB_DEADLINE
+          one() {
+            local left=$(( JOB_DEADLINE - $(date +%s) ))
+            if [ "$left" -lt 300 ]; then echo "SKIP seed $1 (time budget)"; return 0; fi
+            local rc=0
+            timeout "${left}s" "$BENCH" fuzz --seed "$1" > "logs/seed-$1.log" 2>&1 || rc=$?
+            if [ "$rc" = 0 ]; then
+              echo "PASS seed $1"; rm -f "logs/seed-$1.log"
+            elif [ "$rc" = 124 ]; then
+              echo "SKIP seed $1 (stopped at the time budget)"
+            else
+              echo "FAIL seed $1"; cat "logs/seed-$1.log"; return 1
+            fi
+          }
+          export -f one
+          rc=0
+          seq "$a" "$b" | xargs -P 4 -I{} bash -c 'one {}' | tee logs/fuzz-seeds.log || rc=1
+          echo "$(grep -c '^PASS seed' logs/fuzz-seeds.log || true) passed," \
+            "$(grep -c '^SKIP seed' logs/fuzz-seeds.log || true) skipped in $a..$b"
+          if grep -q '^SKIP seed' logs/fuzz-seeds.log; then
+            echo "::warning::fuzz shard $k ran out of time at seed $(grep -m1 '^SKIP' logs/fuzz-seeds.log | cut -d' ' -f3)"
+          fi
+          # A failing seed's own log (catted above) repeats its `FAIL seed <n> ...` line.
+          failed=$(grep -oE '^FAIL seed [0-9]+' logs/fuzz-seeds.log | cut -d' ' -f3 | sort -nu \
+            | tr '\n' ' ' || true)
+          if [ "$rc" != 0 ] || [ -n "$failed" ]; then
+            echo "::error::fuzz shard $k: failing seeds: ${failed:-none reported (exit $rc)}"
+            exit 1
+          fi
+      - name: Upload failure logs
+        # Also when the run was cancelled or hit the job timeout.
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-failures-${{ matrix.shard }}
+          path: |
+            logs/
+            ${{ runner.temp }}/fz/unlatch-fuzz-*.json
+          if-no-files-found: ignore

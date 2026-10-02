@@ -1,0 +1,10 @@
+{
+  "call": 16,
+  "msg": {
+    "Error": {
+      "code": "Offline",
+      "msg": "not connected",
+      "current": null
+    }
+  }
+}

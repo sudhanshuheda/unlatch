@@ -1,0 +1,1157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Your cloud VM's files in macOS Finder, as snappy as a local folder. Built for people who run Claude Code and Codex on remote VMs.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ECEEEE" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1114" media="(prefers-color-scheme: dark)">
+<link rel="canonical" href="https://unlatch.dev/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2314171C'/%3E%3Cpath d='M7.5 9v8.5a5 5 0 0 0 10 0V9' fill='none' stroke='%23ECEEEE' stroke-width='3.6'/%3E%3Crect x='21' y='9' width='5' height='14' fill='%23F06AAE'/%3E%3C/svg%3E">
+<link rel="alternate" type="text/markdown" href="/SKILL.md" title="Unlatch agent setup">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Unlatch: Your VM, in Finder.">
+<meta property="og:description" content="Your cloud VM's files in macOS Finder, as snappy as a local folder. Built for people who run Claude Code and Codex on remote VMs.">
+<meta property="og:url" content="https://unlatch.dev/">
+<meta property="og:site_name" content="Unlatch">
+<meta property="og:image" content="https://unlatch.dev/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Unlatch: Your VM, in Finder. npx unlatch">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://unlatch.dev/og.png">
+<title>Unlatch</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Martian+Mono:wdth,wght@75..112.5,100..800&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&display=swap">
+<style>
+:root {
+  --paper: #ECEEEE;
+  --sheet: #F7F8F8;
+  --ink: #14171C;
+  --ink-2: #343A42;
+  --muted: #59626C;
+  --rule: #14171C2B;
+  --rule-strong: #14171C;
+  --rev-bg: #14171C;
+  --rev-ink: #ECEEEE;
+  --accent: #B0136A;
+  --accent-wash: #B0136A1C;
+  --ok: #1D7A4B;
+  --warn: #9A5B00;
+  --bar-them: #14171C3D;
+  --cmd-bg: #14171C;
+  --cmd-ink: #E6E9EC;
+  --cmd-dim: #9AA3AD;
+  --cmd-line: #14171C;
+  --cmd-accent: #F27BB8;
+  --term-bg: #15181D;
+  --term-bar: #20242A;
+  --term-ink: #D9DDE2;
+  --term-dim: #8E98A4;
+  --term-ok: #63C98F;
+  --term-accent: #F27BB8;
+  --term-hot: #F27BB82E;
+  --fd-bg: #FFFFFF;
+  --fd-side: #EEF0F2;
+  --fd-ink: #1D1F23;
+  --fd-muted: #565E68;
+  --fd-line: #1D1F2314;
+  --fd-sel: #DCDFE4;
+  --fd-sel-on: #0A62D0;
+  --fd-sel-on-ink: #FFFFFF;
+  --fd-zebra: #F5F6F8;
+  --fd-folder: #4D93E0;
+  --fd-ql: #FAFAFB;
+  --fd-shadow: 0 1px 0 #14171C14, 0 22px 48px -24px #14171C66;
+  --chart-bg: #FFFFFF;
+  --chart-grid: #1D1F231A;
+  --chart-line: #0A62D0;
+  --mono: "Martian Mono", ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --serif: "Newsreader", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --mac: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+  --gutter: max(16px, 3.4vw);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0F1114;
+    --sheet: #161A1E;
+    --ink: #E3E6E9;
+    --ink-2: #C3C9D0;
+    --muted: #949CA6;
+    --rule: #E3E6E926;
+    --rule-strong: #E3E6E9;
+    --rev-bg: #E3E6E9;
+    --rev-ink: #0F1114;
+    --accent: #F06AAE;
+    --accent-wash: #F06AAE26;
+    --ok: #5CC48C;
+    --warn: #E0A54A;
+    --bar-them: #E3E6E94D;
+    --cmd-bg: #1B1F25;
+    --cmd-ink: #E3E6E9;
+    --cmd-dim: #949CA6;
+    --cmd-line: #E3E6E9;
+    --cmd-accent: #F06AAE;
+    --term-bg: #090B0D;
+    --term-bar: #15181C;
+    --fd-bg: #1E2125;
+    --fd-side: #26292E;
+    --fd-ink: #E6E8EB;
+    --fd-muted: #AEB5BE;
+    --fd-line: #FFFFFF14;
+    --fd-sel: #3A3F46;
+    --fd-sel-on: #2F6FD6;
+    --fd-zebra: #23262A;
+    --fd-folder: #5AA2EE;
+    --fd-ql: #26292E;
+    --fd-shadow: 0 0 0 1px #FFFFFF1A, 0 22px 48px -24px #000000CC;
+    --chart-bg: #1B1E22;
+    --chart-grid: #FFFFFF1F;
+    --chart-line: #6AAEFF;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0F1114;
+  --sheet: #161A1E;
+  --ink: #E3E6E9;
+  --ink-2: #C3C9D0;
+  --muted: #949CA6;
+  --rule: #E3E6E926;
+  --rule-strong: #E3E6E9;
+  --rev-bg: #E3E6E9;
+  --rev-ink: #0F1114;
+  --accent: #F06AAE;
+  --accent-wash: #F06AAE26;
+  --ok: #5CC48C;
+  --warn: #E0A54A;
+  --bar-them: #E3E6E94D;
+  --cmd-bg: #1B1F25;
+  --cmd-ink: #E3E6E9;
+  --cmd-dim: #949CA6;
+  --cmd-line: #E3E6E9;
+  --cmd-accent: #F06AAE;
+  --term-bg: #090B0D;
+  --term-bar: #15181C;
+  --fd-bg: #1E2125;
+  --fd-side: #26292E;
+  --fd-ink: #E6E8EB;
+  --fd-muted: #AEB5BE;
+  --fd-line: #FFFFFF14;
+  --fd-sel: #3A3F46;
+  --fd-sel-on: #2F6FD6;
+  --fd-zebra: #23262A;
+  --fd-folder: #5AA2EE;
+  --fd-ql: #26292E;
+  --fd-shadow: 0 0 0 1px #FFFFFF1A, 0 22px 48px -24px #000000CC;
+  --chart-bg: #1B1E22;
+  --chart-grid: #FFFFFF1F;
+  --chart-line: #6AAEFF;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+img, svg { max-width: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 18px/1.55 var(--serif);
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+}
+p { margin: 0; }
+h1, h2, h3 { margin: 0; font-weight: 700; }
+a { color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: var(--rule); }
+a:hover { text-decoration-color: var(--accent); color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+code, kbd, .m { font-family: var(--mono); font-size: .74em; letter-spacing: -.01em; }
+.page { padding-inline: var(--gutter); padding-block: 0 32px; max-width: 1440px; margin-inline: auto; }
+
+/* ---------- running head ---------- */
+.head {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 30;
+  background: var(--paper);
+  border-bottom: 1px solid var(--rule-strong);
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px;
+  min-height: 46px;
+  font: 600 11.5px/1 var(--mono); letter-spacing: .02em;
+}
+.head > a { text-decoration: none; white-space: nowrap; }
+.head .c { display: flex; gap: 22px; font-weight: 400; }
+.head .c a, .head .r a { text-decoration: none; }
+.head .r { justify-self: end; display: flex; gap: 16px; align-items: center; min-width: 0; }
+.head .gh { display: inline-flex; gap: 7px; align-items: center; padding: 7px 10px; background: var(--rev-bg); color: var(--rev-ink); white-space: nowrap; }
+.head .gh:hover { color: var(--rev-ink); background: var(--accent); }
+.head .gh svg { width: 14px; height: 14px; fill: currentColor; flex: none; }
+.head .title-r { color: var(--muted); font-weight: 400; white-space: nowrap; }
+
+/* ---------- section grid: rail | body | margin ---------- */
+.sec {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr) 250px;
+  column-gap: 44px; row-gap: 20px;
+  padding-block: 52px 56px;
+  border-bottom: 1px solid var(--rule);
+}
+.rail { font: 800 12px/1.3 var(--mono); letter-spacing: .08em; text-transform: uppercase; padding-top: 8px; }
+.rail span { display: block; font-weight: 400; color: var(--muted); letter-spacing: .02em; text-transform: none; margin-top: 6px; }
+.body { min-width: 0; }
+.body > * + * { margin-top: 18px; }
+.margin { font: 400 12px/1.7 var(--mono); color: var(--ink-2); padding-top: 8px; min-width: 0; }
+.margin > * + * { margin-top: 14px; }
+.margin b { color: var(--ink); font-weight: 700; }
+.wide { grid-column: 2 / 4; min-width: 0; }
+
+h2.hd { font: 700 clamp(26px, 3vw, 40px)/1.08 var(--mono); font-stretch: semi-condensed; letter-spacing: -.035em; max-width: 26ch; text-wrap: balance; }
+.lede { font-size: 21px; line-height: 1.5; max-width: 40em; color: var(--ink-2); }
+
+/* ---------- hero ---------- */
+.hero { padding-block: 34px 44px; border-bottom: 1px solid var(--rule-strong); }
+.hero-grid { grid-column: 2 / 4; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.04fr); gap: 44px; align-items: start; min-width: 0; }
+.hero-text { min-width: 0; }
+.hero .name { font: 400 13px/1.6 var(--mono); color: var(--ink-2); }
+.hero .name b { color: var(--ink); }
+h1 {
+  font: 800 clamp(44px, 5.4vw, 80px)/1.1 var(--mono); font-stretch: condensed; letter-spacing: -.06em;
+  margin-top: 16px; padding-right: .4em;
+}
+h1 .rev { background: var(--rev-bg); color: var(--rev-ink); padding: 0 .04em 0 .06em; position: relative; white-space: nowrap; }
+h1 .rev::after {
+  content: ""; position: absolute; left: 100%; top: 0; bottom: 0; width: .38em; background: var(--accent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  h1 .rev::after { animation: blink 1.1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: .2; } }
+}
+.hero .dek { font-size: clamp(19px, 1.6vw, 22px); line-height: 1.45; max-width: 30em; margin-top: 22px; color: var(--ink-2); }
+
+.status { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 18px; font: 400 11.5px/1.5 var(--mono); color: var(--muted); }
+.status span { white-space: nowrap; }
+.status .dot { display: inline-block; width: 7px; height: 7px; background: var(--warn); margin-right: 7px; vertical-align: 1px; }
+
+/* the two install lines, equal billing */
+.synopsis { display: grid; grid-template-columns: minmax(0, 1fr); margin-top: 26px; border: 1px solid var(--rule-strong); }
+.synopsis.two { grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); }
+.syn { padding: 15px 16px 14px; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.syn + .syn { border-top: 1px solid var(--rule-strong); }
+.synopsis.two .syn + .syn { border-top: 0; border-left: 1px solid var(--rule-strong); }
+.syn .lab { font: 600 10.5px/1.3 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.syn.rev { background: var(--cmd-bg); color: var(--cmd-ink); }
+.syn.rev .lab { color: var(--cmd-dim); }
+.line { display: flex; align-items: flex-start; gap: 12px; }
+.line pre { margin: 0; flex: 1; min-width: 0; white-space: pre-wrap; font: 500 clamp(14px, 1.15vw, 16.5px)/1.5 var(--mono); letter-spacing: -.02em; }
+.line pre .p { color: var(--accent); user-select: none; }
+.syn.rev .line pre .p, .cmd .p { color: var(--cmd-accent); user-select: none; }
+.url { white-space: nowrap; display: inline-block; }
+.syn .note { font: 400 11.5px/1.55 var(--mono); color: var(--ink-2); }
+.syn.rev .note { color: var(--cmd-dim); }
+.copy {
+  flex: none; cursor: pointer; font: 600 11px/1 var(--mono); letter-spacing: .04em; text-transform: uppercase;
+  padding: 8px 10px; border: 1px solid currentColor; background: transparent; color: inherit;
+}
+.copy:hover { background: var(--accent); border-color: var(--accent); color: var(--paper); }
+.syn.rev .copy:hover, .cmd .copy:hover { background: var(--cmd-accent); border-color: var(--cmd-accent); color: var(--cmd-bg); }
+.copy.done, .syn.rev .copy.done, .cmd .copy.done { background: var(--ok); border-color: var(--ok); color: var(--paper); }
+
+/* ---------- fig. 1a: the Finder window ---------- */
+.fig { min-width: 0; margin: 0; }
+.figcap { display: flex; justify-content: space-between; align-items: baseline; gap: 6px 16px; flex-wrap: wrap; margin-bottom: 12px; font: 400 11.5px/1.5 var(--mono); color: var(--muted); }
+.figcap b { color: var(--ink); font-weight: 700; }
+.illus { border: 1px solid var(--rule); padding: 2px 7px; letter-spacing: .08em; text-transform: uppercase; font-size: 10px; white-space: nowrap; }
+.finder { background: var(--fd-bg); color: var(--fd-ink); font: 400 12.5px/1.2 var(--mac); box-shadow: var(--fd-shadow); border-radius: 10px; overflow: hidden; display: grid; grid-template-columns: 138px minmax(0, 1fr); min-width: 0; position: relative; }
+.fd-side { background: var(--fd-side); padding: 12px 9px; font-size: 12px; min-width: 0; }
+.fd-lights { display: flex; gap: 7px; margin: 2px 0 14px 3px; }
+.fd-lights i { width: 11px; height: 11px; border-radius: 50%; background: var(--fd-muted); opacity: .4; display: inline-block; }
+.fd-side h4 { margin: 12px 0 5px 6px; font: 600 10.5px/1 var(--mac); color: var(--fd-muted); }
+.fd-side div { padding: 4px 6px; border-radius: 5px; display: flex; gap: 6px; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fd-side div.sel { background: var(--fd-sel); font-weight: 600; }
+.fd-side svg { width: 13px; height: 13px; flex: none; }
+.fd-side .ej { margin-left: auto; color: var(--fd-muted); font-weight: 400; font-size: 10px; }
+.fd-main { min-width: 0; display: flex; flex-direction: column; position: relative; container-type: inline-size; }
+.fd-tool { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-bottom: 1px solid var(--fd-line); font-weight: 600; font-size: 13px; }
+.fd-tool .chev { color: var(--fd-muted); font-weight: 400; }
+.fd-tool .sync { margin-left: auto; font: 400 11px/1 var(--mac); color: var(--fd-muted); display: flex; gap: 5px; align-items: center; white-space: nowrap; }
+.fd-tool .sync i { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); display: inline-block; }
+.qlb { appearance: none; border: 1px solid var(--fd-line); background: transparent; color: var(--fd-ink); border-radius: 6px; padding: 3px 6px; cursor: pointer; display: inline-flex; }
+.qlb svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.3; }
+.qlb:hover, .qlb[aria-pressed="true"] { background: var(--fd-sel); }
+.fd-list { flex: 1; outline: none; overflow-x: auto; }
+.fd-list:focus-visible { box-shadow: inset 0 0 0 2px var(--fd-sel-on); outline: none; }
+.fd-table { width: 100%; border-collapse: collapse; }
+.fd-table th { text-align: left; font-weight: 500; font-size: 11px; color: var(--fd-muted); padding: 6px 8px; border-bottom: 1px solid var(--fd-line); white-space: nowrap; }
+.fd-table td { padding: 4px 8px; white-space: nowrap; transition: background .3s; }
+.fd-table tbody tr { cursor: default; }
+.fd-table tbody tr:nth-child(even) td { background: var(--fd-zebra); }
+.fd-table td.n { max-width: 0; width: 52%; overflow: hidden; text-overflow: ellipsis; }
+.fd-table td.n > span.nm { display: inline-flex; align-items: center; gap: 5px; vertical-align: middle; }
+.fd-table td.n svg { width: 14px; height: 14px; flex: none; }
+.fd-table td.s, .fd-table td.k, .fd-table td.t { color: var(--fd-muted); }
+.fd-table td.s, .fd-table th.s { text-align: right; }
+.fd-table .tw { color: var(--fd-muted); width: 11px; display: inline-block; font-size: 8.5px; text-align: center; }
+.fd-table .i1 { padding-left: 22px; }
+.fd-table .i2 { padding-left: 36px; }
+.fd-table tr.hot td { background: var(--accent-wash) !important; }
+.fd-table tr[aria-selected="true"] td { background: var(--fd-sel) !important; }
+.fd-list:focus tr[aria-selected="true"] td { background: var(--fd-sel-on) !important; color: var(--fd-sel-on-ink); }
+.fd-table .cloud { width: 15px; height: 15px; color: var(--fd-muted); margin-left: 4px; }
+.fd-table .t .ts { display: none; }
+@container (max-width: 560px) {
+  .fd-table .k, .fd-table th.k { display: none; }
+  .fd-table td.n { width: 58%; }
+}
+@container (max-width: 380px) {
+  .fd-table .t .tl { display: none; }
+  .fd-table .t .ts { display: inline; }
+  .fd-table td.n { width: 64%; }
+}
+.fd-path { padding: 6px 12px; border-top: 1px solid var(--fd-line); font-size: 11px; color: var(--fd-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ql { position: absolute; inset: 44px 14px 34px 14px; background: var(--fd-ql); border-radius: 9px; box-shadow: 0 0 0 1px var(--fd-line), 0 18px 40px -16px #00000073; display: flex; flex-direction: column; z-index: 3; }
+.ql-bar { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid var(--fd-line); font-size: 12px; }
+.ql-bar b { flex: 1; text-align: center; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ql-bar button { appearance: none; border: 0; background: transparent; color: var(--fd-muted); cursor: pointer; font: 600 13px/1 var(--mac); padding: 3px 6px; border-radius: 5px; }
+.ql-bar button:hover { background: var(--fd-sel); }
+.ql-bar span { font-size: 11px; color: var(--fd-muted); white-space: nowrap; }
+.ql-body { flex: 1; min-height: 0; overflow: auto; padding: 14px; display: flex; align-items: center; justify-content: center; }
+.ql-body pre { margin: 0; align-self: stretch; width: 100%; font: 400 11px/1.6 var(--mono); white-space: pre; color: var(--fd-ink); }
+.ql-body .msg { text-align: center; color: var(--fd-muted); font-size: 12.5px; line-height: 1.5; max-width: 30ch; }
+.ql-body .msg b { display: block; color: var(--fd-ink); font-size: 13px; margin-bottom: 4px; }
+.ql-chart { width: 100%; height: auto; display: block; }
+.fd-hint { margin-top: 10px; font: 400 11px/1.6 var(--mono); color: var(--muted); }
+.fd-hint kbd { font-size: 10.5px; border: 1px solid var(--rule); border-bottom-width: 2px; padding: 0 .4em; border-radius: 3px; background: var(--sheet); }
+
+/* dimension line under the figure (a drafting-sheet habit) */
+.dim { margin-top: 18px; font: 400 12px/1.4 var(--mono); }
+.dim .rule { position: relative; height: 9px; border-inline: 1px solid var(--ink); margin-bottom: 8px; }
+.dim .rule::before { content: ""; position: absolute; left: 0; right: 0; top: 4px; border-top: 1px solid var(--ink); }
+.dim .rule i { position: absolute; left: 0; top: 2px; height: 5px; min-width: 4px; background: var(--accent); }
+.dim .v { display: flex; flex-wrap: wrap; gap: 2px 12px; align-items: baseline; }
+.dim .v span { white-space: nowrap; }
+.dim .v b { font-weight: 800; font-size: 15px; color: var(--accent); }
+.dim .v code { font-size: inherit; }
+.dim .c { color: var(--muted); font-size: 11px; margin-top: 4px; }
+.dim .c span { white-space: nowrap; }
+
+/* ---------- fig. 1b: terminal | inotify log ---------- */
+.sig { padding-block: 34px 40px; border-bottom: 1px solid var(--rule); }
+.stage { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 0; border: 1px solid var(--rule-strong); }
+.term { background: var(--term-bg); color: var(--term-ink); font: 400 12px/1.75 var(--mono); letter-spacing: -.02em; min-width: 0; display: flex; flex-direction: column; }
+.term .bar { background: var(--term-bar); color: var(--term-dim); padding: 9px 14px; font-size: 11px; display: flex; gap: 8px; align-items: center; white-space: nowrap; overflow: hidden; }
+.term .bar i { width: 9px; height: 9px; border-radius: 50%; background: var(--term-dim); opacity: .45; display: inline-block; flex: none; }
+.term .bar span { margin-left: 8px; }
+.term .scr { padding: 14px 16px 18px; overflow-x: auto; flex: 1; }
+.term .scr div { white-space: pre; padding-inline: 4px; margin-inline: -4px; transition: background .3s; }
+.term .d { color: var(--term-dim); }
+.term .g { color: var(--term-ok); }
+.term .a { color: var(--term-accent); }
+.term .hot { background: var(--term-hot); }
+.evlog { background: var(--sheet); min-width: 0; display: flex; flex-direction: column; font: 400 11.5px/1.5 var(--mono); }
+.evlog .th { padding: 9px 14px; border-bottom: 1px solid var(--rule); color: var(--muted); display: flex; justify-content: space-between; gap: 4px 10px; flex-wrap: wrap; }
+.evlog .th b { color: var(--ink); }
+.evlog ol { list-style: none; margin: 0; padding: 6px 0; flex: 1; }
+.evlog li { display: grid; grid-template-columns: 62px 118px minmax(0, 1fr) auto; gap: 2px 10px; padding: 6px 14px 6px 11px; border-left: 3px solid transparent; transition: background .3s, border-color .3s; }
+.evlog .tm { color: var(--muted); }
+.evlog .ev { font-weight: 700; color: var(--ink); }
+.evlog .ev.q { font-weight: 400; color: var(--ink-2); }
+.evlog .pa { color: var(--ink-2); overflow-wrap: break-word; }
+.evlog .sz { color: var(--muted); text-align: right; white-space: nowrap; }
+.evlog .why { grid-column: 3 / -1; color: var(--muted); font-size: 10.5px; }
+.evlog li.hot { background: var(--accent-wash); border-left-color: var(--accent); }
+.evlog .tf { padding: 8px 14px 10px; border-top: 1px solid var(--rule); color: var(--muted); }
+
+/* ---------- install tabs ---------- */
+.tabs { display: flex; border-bottom: 1px solid var(--rule-strong); overflow-x: auto; }
+.tab { font: 600 12px/1 var(--mono); padding: 12px 16px; border: 1px solid transparent; border-bottom: 0; background: transparent; color: var(--muted); cursor: pointer; white-space: nowrap; margin-bottom: -1px; }
+.tab[aria-selected="true"] { color: var(--ink); border-color: var(--rule-strong); background: var(--sheet); border-bottom: 1px solid var(--sheet); }
+.panel { background: var(--sheet); border: 1px solid var(--rule-strong); border-top: 0; padding: 22px 22px 24px; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 22px; }
+.steps li { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; }
+.steps .k { font: 700 11px/1.4 var(--mono); letter-spacing: .06em; text-transform: uppercase; padding-top: 3px; }
+.steps .k span { display: block; color: var(--muted); font-weight: 400; letter-spacing: 0; text-transform: none; }
+.steps p { font-size: 16.5px; color: var(--ink-2); }
+.steps .cmd + p { margin-top: 8px; }
+.cmd { display: flex; align-items: center; gap: 12px; background: var(--cmd-bg); color: var(--cmd-ink); border: 1px solid var(--cmd-line); padding: 11px 12px 11px 14px; margin-top: 8px; }
+.cmd pre { margin: 0; flex: 1; min-width: 0; overflow-x: auto; font: 500 13.5px/1.5 var(--mono); letter-spacing: -.02em; white-space: pre; }
+.cmd pre.wrap { white-space: pre-wrap; }
+.reqs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--rule); }
+.reqs div { padding: 12px 14px 0 0; font: 400 12px/1.55 var(--mono); color: var(--ink-2); }
+.reqs b { display: block; color: var(--ink); font-weight: 700; }
+
+/* ---------- how it works diagram ---------- */
+.diag { border: 1px solid var(--rule-strong); background: var(--sheet); display: grid; grid-template-columns: minmax(0, 1fr) minmax(110px, .55fr) minmax(0, 1fr); font: 400 11.5px/1.5 var(--mono); }
+.side { padding: 16px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.side > .lbl { font-weight: 800; letter-spacing: .08em; text-transform: uppercase; font-size: 10.5px; color: var(--muted); display: flex; justify-content: space-between; }
+.box { border: 1px solid var(--rule-strong); padding: 9px 11px; background: var(--paper); }
+.box b { display: block; font-weight: 700; color: var(--ink); }
+.box span { color: var(--muted); }
+.box.k { background: var(--rev-bg); color: var(--rev-ink); border-color: var(--rev-bg); }
+.box.k b { color: var(--rev-ink); }
+.box.k span { color: color-mix(in srgb, var(--rev-ink) 68%, transparent); }
+.down { text-align: center; color: var(--muted); line-height: 1; font-size: 13px; }
+.wire { border-inline: 1px dashed var(--rule-strong); display: flex; flex-direction: column; justify-content: center; align-items: stretch; padding: 16px 10px; gap: 10px; text-align: center; min-width: 0; }
+.wire .pipe { height: 10px; background: repeating-linear-gradient(90deg, var(--ink) 0 8px, transparent 8px 12px); position: relative; }
+.wire .pipe::after { content: ""; position: absolute; right: -2px; top: -4px; border: 9px solid transparent; border-left-color: var(--ink); border-right: 0; }
+.wire .pipe.back { transform: scaleX(-1); opacity: .45; }
+.wire b { font-weight: 800; }
+.wire span { color: var(--muted); }
+@media (prefers-reduced-motion: no-preference) {
+  .wire .pipe:not(.back) { animation: flow 1.6s linear infinite; background-size: 12px 10px; }
+  @keyframes flow { to { background-position: 12px 0; } }
+}
+.points { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 36px; margin-top: 30px; counter-reset: pt; }
+.points div { border-top: 1px solid var(--rule-strong); padding-top: 12px; }
+.points h3 { font: 700 13px/1.4 var(--mono); letter-spacing: -.01em; }
+.points h3::before { counter-increment: pt; content: counter(pt, decimal-leading-zero) "  "; color: var(--accent); }
+.points p { font-size: 16.5px; color: var(--ink-2); margin-top: 6px; }
+
+/* ---------- numbers readout ---------- */
+.readout { border: 1px solid var(--rule-strong); background: var(--sheet); }
+.ro-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 20px; padding: 12px 16px; border-bottom: 1px solid var(--rule-strong); font: 400 11.5px/1.5 var(--mono); color: var(--ink-2); }
+.ro-head b { color: var(--ink); }
+.ro-head .pre { color: var(--warn); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.metric { display: grid; grid-template-columns: minmax(0, 1fr) minmax(96px, auto); gap: 6px 18px; padding: 15px 16px; border-bottom: 1px dashed var(--rule); }
+.metric:last-child { border-bottom: 0; }
+.metric .q { font: 700 13px/1.45 var(--mono); letter-spacing: -.01em; grid-column: 1; }
+.metric .x { grid-column: 2; grid-row: 1 / span 3; text-align: right; font: 800 clamp(20px, 2vw, 28px)/1 var(--mono); font-stretch: condensed; letter-spacing: -.04em; align-self: center; }
+.metric .x small { display: block; font: 400 10.5px/1.4 var(--mono); color: var(--muted); letter-spacing: 0; margin-top: 4px; }
+.metric.lose .x { color: var(--muted); }
+.row { display: grid; grid-template-columns: 70px minmax(0, 1fr) 84px; gap: 12px; align-items: center; font: 400 12px/1.4 var(--mono); grid-column: 1; }
+.row .who { color: var(--muted); }
+.row .v { text-align: right; font-weight: 700; white-space: nowrap; }
+.row.us .who { color: var(--ink); font-weight: 700; }
+.track { height: 12px; position: relative; }
+.fill { position: absolute; inset: 0 auto 0 0; min-width: 3px; }
+.us .fill { background: var(--accent); }
+.them .fill { background: repeating-linear-gradient(135deg, var(--bar-them) 0 2px, transparent 2px 5px); border: 1px solid var(--bar-them); }
+.metric .fn { grid-column: 1; font: 400 11.5px/1.6 var(--mono); color: var(--ink-2); }
+.metric .fn .miss { color: var(--warn); font-weight: 700; }
+
+/* ---------- every Mac app: keycaps ---------- */
+.keys { list-style: none; margin: 24px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--rule-strong); }
+.keys li { padding: 20px 20px 22px 0; border-bottom: 1px solid var(--rule); min-width: 0; }
+.keys li + li { padding-left: 20px; border-left: 1px solid var(--rule); }
+.caps { display: flex; gap: 6px; flex-wrap: wrap; min-height: 46px; align-items: flex-end; }
+.cap {
+  font: 600 13px/1 var(--mono); min-width: 40px; height: 40px; padding: 0 11px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--rule-strong); border-bottom-width: 4px; border-radius: 6px; background: var(--sheet); color: var(--ink);
+}
+.cap.wide { min-width: 120px; }
+.cap.sym { font: 400 18px/1 var(--mac); }
+.cap.act { border-style: dashed; border-bottom-width: 1px; height: 37px; font-weight: 400; color: var(--ink-2); }
+.keys h3 { font: 600 19px/1.3 var(--serif); margin-top: 16px; }
+.keys p { font-size: 15.5px; color: var(--ink-2); margin-top: 4px; }
+.keys code { font-size: .8em; }
+
+/* ---------- verification (changelog) ---------- */
+.log { list-style: none; margin: 24px 0 0; padding: 0; border-top: 1px solid var(--rule-strong); }
+.log li { display: grid; grid-template-columns: 92px minmax(0, 1fr) 150px; gap: 18px; padding: 16px 0; border-bottom: 1px solid var(--rule); }
+.log .tag { font: 800 12px/1.4 var(--mono); padding-top: 3px; }
+.log .tag::before { content: "+ "; color: var(--accent); }
+.log h3 { font: 700 15px/1.4 var(--mono); letter-spacing: -.02em; }
+.log p { font-size: 16.5px; color: var(--ink-2); margin-top: 6px; }
+.log .res { text-align: right; font: 400 11.5px/1.5 var(--mono); color: var(--muted); padding-top: 3px; }
+.log .res b { display: block; color: var(--ink); font: 800 19px/1.15 var(--mono); font-stretch: condensed; letter-spacing: -.03em; }
+.log li.pass .res b { color: var(--ok); }
+.log li.gap .tag::before { content: "! "; color: var(--warn); }
+.log li.gap .res b { color: var(--warn); }
+
+/* ---------- security (OPTIONS-style) ---------- */
+.opts { margin: 24px 0 0; display: grid; grid-template-columns: minmax(150px, 230px) minmax(0, 1fr); border-top: 1px solid var(--rule-strong); }
+.opts dt, .opts dd { padding: 14px 0; border-bottom: 1px solid var(--rule); margin: 0; }
+.opts dt { font: 700 12.5px/1.5 var(--mono); padding-right: 18px; letter-spacing: -.01em; }
+.opts dd { font-size: 16.5px; color: var(--ink-2); }
+
+/* ---------- compare table ---------- */
+.tscroll { overflow-x: auto; border: 1px solid var(--rule-strong); background: var(--sheet); }
+table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font: 400 12px/1.5 var(--mono); }
+.cmp th, .cmp td { text-align: left; vertical-align: top; padding: 11px 14px; border-bottom: 1px solid var(--rule); }
+.cmp thead th { font-weight: 800; border-bottom: 1px solid var(--rule-strong); }
+.cmp thead th.us { background: var(--rev-bg); color: var(--rev-ink); }
+.cmp tbody th { font-weight: 600; color: var(--ink); width: 21%; }
+.cmp td { color: var(--ink-2); }
+.cmp td.us { color: var(--ink); font-weight: 700; background: var(--accent-wash); }
+.cmp tr:last-child th, .cmp tr:last-child td { border-bottom: 0; }
+.cmp .na { color: var(--muted); }
+.cmp sup a { color: var(--accent); text-decoration: none; font-weight: 700; }
+.scroll-hint { display: none; font: 400 11px/1.4 var(--mono); color: var(--muted); }
+.srcs { font: 400 11.5px/1.7 var(--mono); color: var(--ink-2); padding-left: 1.6em; }
+.srcs li { overflow-wrap: anywhere; }
+
+/* ---------- faq ---------- */
+.qa { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 40px; }
+.qa div { border-top: 1px solid var(--rule-strong); padding: 14px 0 20px; }
+.qa h3 { font: 700 14px/1.45 var(--mono); letter-spacing: -.02em; }
+.qa p { font-size: 16.5px; color: var(--ink-2); margin-top: 6px; }
+
+/* ---------- closing + footer ---------- */
+.close { padding-block: 56px; border-bottom: 1px solid var(--rule-strong); }
+.close h2 { font: 800 clamp(40px, 6vw, 92px)/1.04 var(--mono); font-stretch: condensed; letter-spacing: -.06em; }
+.close h2 .rev { background: var(--rev-bg); color: var(--rev-ink); padding: 0 .04em 0 .06em; white-space: nowrap; }
+.close .synopsis { margin-top: 28px; }
+.foot { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px 20px; padding-block: 14px; font: 600 11.5px/1.5 var(--mono); }
+.foot .r { justify-self: end; }
+.colophon { display: flex; flex-wrap: wrap; gap: 6px 22px; font: 400 11.5px/1.6 var(--mono); color: var(--ink-2); padding-block: 14px 6px; }
+
+.metric code, .log h3 code, .qa h3 code, .cmp code, .srcs code, .points h3 code, .margin code, .ro-head code, .reqs code, .syn .note code, .evlog code { font-size: inherit; letter-spacing: inherit; }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1180px) {
+  .sec { grid-template-columns: 150px minmax(0, 1fr); }
+  .margin { grid-column: 2; padding-top: 0; }
+  .wide, .hero-grid { grid-column: 2; }
+}
+@media (max-width: 1100px) {
+  .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 36px; }
+  h1 { font-size: clamp(44px, 8.4vw, 92px); }
+  .keys { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .keys li:nth-child(3) { padding-left: 0; border-left: 0; }
+}
+@media (max-width: 860px) {
+  .head .c { display: none; }
+  .head { grid-template-columns: 1fr auto; }
+  .sec { grid-template-columns: minmax(0, 1fr); padding-block: 36px 40px; }
+  .rail, .body, .margin, .wide, .hero-grid { grid-column: 1; }
+  .rail { padding-top: 0; }
+  .hero { padding-top: 24px; }
+  .synopsis.two { grid-template-columns: minmax(0, 1fr); }
+  .synopsis.two .syn + .syn { border-left: 0; border-top: 1px solid var(--rule-strong); }
+  .stage { grid-template-columns: minmax(0, 1fr); }
+  .diag { grid-template-columns: minmax(0, 1fr); }
+  .wire { border-inline: 0; border-block: 1px dashed var(--rule-strong); flex-direction: row; flex-wrap: wrap; justify-content: center; }
+  .wire .pipe { width: 100%; }
+  .points, .qa { grid-template-columns: minmax(0, 1fr); }
+  .log li { grid-template-columns: minmax(0, 1fr) auto; }
+  .log .tag { grid-column: 1; }
+  .log .res { grid-column: 2; grid-row: 1; }
+  .log li > div:nth-child(2) { grid-column: 1 / -1; }
+  .opts { grid-template-columns: minmax(0, 1fr); }
+  .opts dt { border-bottom: 0; padding-bottom: 2px; }
+  .opts dd { padding-top: 0; }
+  .reqs { grid-template-columns: minmax(0, 1fr); }
+  .foot { grid-template-columns: 1fr 1fr; }
+  .foot .m2 { display: none; }
+  .scroll-hint { display: block; }
+}
+@media (max-width: 560px) {
+  body { font-size: 17px; }
+  .head .title-r { display: none; }
+  h1 { font-size: clamp(40px, 13.4vw, 60px); }
+  .hero .dek { font-size: 18.5px; }
+  .finder { grid-template-columns: minmax(0, 1fr); }
+  .fd-side { display: flex; gap: 6px; align-items: center; padding: 8px 10px; }
+  .fd-side h4, .fd-side .fav { display: none; }
+  .fd-side h4.loc { display: block; margin: 0 0 0 4px; }
+  .fd-lights { margin: 0 6px 0 0; }
+  .ql { inset: 40px 8px 30px 8px; }
+  .evlog li { grid-template-columns: 58px minmax(0, 1fr) auto; }
+  .evlog .pa { grid-column: 1 / -1; padding-left: 68px; }
+  .evlog .sz { grid-column: 3; grid-row: 1; }
+  .evlog .why { grid-column: 1 / -1; padding-left: 68px; }
+  .term { font-size: 11px; }
+  .metric { grid-template-columns: minmax(0, 1fr); }
+  .metric .x { grid-column: 1; grid-row: auto; text-align: left; display: flex; gap: 8px; align-items: baseline; }
+  .metric .x small { margin: 0; }
+  .row { grid-template-columns: 58px minmax(0, 1fr) 72px; gap: 8px; font-size: 11.5px; }
+  .steps li { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .keys { grid-template-columns: minmax(0, 1fr); }
+  .keys li, .keys li + li { padding: 18px 0 20px; border-left: 0; }
+  .panel { padding: 16px 14px 18px; }
+  .cmd pre { font-size: 12.5px; white-space: pre-wrap; }
+  .line pre { font-size: 14.5px; }
+  .close h2 { font-size: clamp(40px, 12.4vw, 60px); }
+}
+@media (max-width: 420px) {
+  .status span { white-space: normal; }
+}
+@media (max-width: 360px) {
+  .line pre { font-size: 13px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+</head>
+<body>
+<div class="page">
+
+<header class="head" aria-label="Site">
+  <a href="#top">UNLATCH(1)</a>
+  <nav class="c" aria-label="Sections">
+    <a href="#install">install</a>
+    <a href="#how">how it works</a>
+    <a href="#numbers">numbers</a>
+    <a href="#verified">verified</a>
+    <a href="#compare">compare</a>
+    <a href="#faq">faq</a>
+  </nav>
+  <div class="r">
+    <span class="title-r">pre-release</span>
+    <a class="gh" href="https://github.com/sudhanshuheda/unlatch"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.05-.49.05-.49.8.06 1.23.83 1.23.83.72 1.22 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.65-.89-3.65-3.95 0-.87.31-1.59.83-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.66 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 8 0Z"/></svg>GitHub</a>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- ============ NAME / hero ============ -->
+<section class="sec hero" aria-labelledby="h1">
+  <div class="rail">Name<span>unlatch(1)</span></div>
+  <div class="hero-grid">
+    <div class="hero-text">
+      <p class="name"><b>unlatch</b> - your cloud VM's files in macOS Finder, as snappy as a local folder</p>
+      <h1 id="h1">Your VM,<br>in <span class="rev">Finder.</span></h1>
+      <p class="dek">Your agent writes files on a VM in the cloud. Unlatch puts that folder in your Finder sidebar, so you can open, preview and drag what it made as soon as it lands. Built for people who run Claude Code and Codex on remote VMs.</p>
+
+      <div class="synopsis" role="group" aria-label="Install">
+        <div class="syn">
+          <div class="lab"><span>Run in a terminal</span><span>VM or Mac</span></div>
+          <div class="line">
+            <pre><span class="p">$ </span>npx unlatch</pre>
+            <button class="copy" type="button" data-copy="npx unlatch">Copy</button>
+          </div>
+          <p class="note">On the VM it shares the folder and prints the line for your Mac. On the Mac it lists the hosts in your <code>~/.ssh/config</code>.</p>
+        </div>
+        <div class="syn rev">
+          <div class="lab"><span>Or paste into Claude Code or Codex on the VM</span><span>SKILL.md</span></div>
+          <div class="line">
+            <pre><span class="p">&gt; </span>Set up Unlatch so I can browse this machine in Finder: <span class="url">https://unlatch.dev/SKILL.md</span></pre>
+            <button class="copy" type="button" data-copy="Set up Unlatch so I can browse this machine in Finder: https://unlatch.dev/SKILL.md">Copy</button>
+          </div>
+          <p class="note">The agent runs the VM side and hands you one line for your Mac.</p>
+        </div>
+      </div>
+
+      <div class="status">
+        <span><span class="dot" aria-hidden="true"></span>pre-release: not on npm yet</span>
+        <span>unlatch.dev coming soon</span>
+        <span>MIT OR Apache-2.0</span>
+        <span>macOS 13+ · Linux VM · your ssh</span>
+      </div>
+    </div>
+
+    <figure class="fig" aria-label="Illustration: the VM folder in a Finder window on the Mac">
+      <figcaption class="figcap"><span><b>fig. 1a</b> &nbsp;your Mac, <span style="white-space:nowrap">Finder › Locations › dev-box</span></span><span class="illus">illustration · not a recording</span></figcaption>
+      <div class="finder" id="finder">
+        <div class="fd-side">
+          <div class="fd-lights" aria-hidden="true"><i></i><i></i><i></i></div>
+          <h4>Favorites</h4>
+          <div class="fav">Recents</div>
+          <div class="fav">Desktop</div>
+          <div class="fav">Downloads</div>
+          <h4 class="loc">Locations</h4>
+          <div class="sel"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="3" width="13" height="8" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M5 13.5h6M8 11v2.5" stroke="currentColor" stroke-width="1.3"/></svg>dev-box<span class="ej" aria-hidden="true">⏏</span></div>
+          <div class="fav">Network</div>
+        </div>
+        <div class="fd-main">
+          <div class="fd-tool">
+            <span class="chev" aria-hidden="true">‹ ›</span><span>api</span>
+            <span class="sync"><i></i>Up to date</span>
+            <button class="qlb" type="button" id="ql-btn" aria-pressed="false" aria-label="Quick Look the selected file" title="Quick Look (Space)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/></svg></button>
+          </div>
+          <div class="fd-list" id="fd-list" tabindex="0" role="listbox" aria-label="Files in dev-box › api. Arrow keys move, Space opens Quick Look." aria-activedescendant="r-latency">
+            <table class="fd-table" role="presentation">
+              <thead><tr><th>Name</th><th>Date Modified</th><th class="s">Size</th><th class="k">Kind</th></tr></thead>
+              <tbody>
+                <tr id="r-reports" role="option" aria-selected="false" data-ql="folder" data-path="reports"><td class="n"><span class="nm"><span class="tw">▼</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 4.2c0-.7.5-1.2 1.2-1.2h3.6l1.4 1.5h6.6c.7 0 1.2.5 1.2 1.2v6.9c0 .7-.5 1.2-1.2 1.2H2.2C1.5 13.8 1 13.3 1 12.6Z" fill="var(--fd-folder)"/></svg>reports</span></td><td class="t"><span class="tl">Today at 14:03</span><span class="ts">14:03</span></td><td class="s">--</td><td class="k">Folder</td></tr>
+                <tr id="r-latency" role="option" aria-selected="true" data-s="3" data-ql="chart" data-path="reports › latency.png"><td class="n i1"><span class="nm"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="1.5" width="11" height="13" rx="1" fill="none" stroke="currentColor" stroke-width="1"/><path d="M4.5 11l2.5-3 2 2 2.5-3.5" fill="none" stroke="var(--chart-line)" stroke-width="1.2"/></svg>latency.png</span></td><td class="t"><span class="tl">Today at 14:03</span><span class="ts">14:03</span></td><td class="s">152 KB</td><td class="k">PNG image</td></tr>
+                <tr id="r-trace" role="option" aria-selected="false" data-ql="cloud" data-path="reports › trace-0930.parquet"><td class="n i1"><span class="nm"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="1.5" width="11" height="13" rx="1" fill="none" stroke="currentColor" stroke-width="1"/><path d="M5 5.5h6M5 8h6M5 10.5h6" stroke="currentColor" stroke-width="1" stroke-dasharray="1.5 1"/></svg>trace-0930.parquet<svg class="cloud" viewBox="0 0 16 16" role="img" aria-label="not downloaded"><path d="M4.5 12.5h7.2a2.8 2.8 0 0 0 .4-5.6 3.8 3.8 0 0 0-7.3-.9A3.3 3.3 0 0 0 4.5 12.5Z" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M8 7.5v3.6M6.5 9.7 8 11.2l1.5-1.5" fill="none" stroke="currentColor" stroke-width="1.1"/></svg></span></td><td class="t"><span class="tl">30 Sep 2026 at 22:41</span><span class="ts">30 Sep</span></td><td class="s">41.2 MB</td><td class="k">Document</td></tr>
+                <tr id="r-src" role="option" aria-selected="false" data-ql="folder" data-path="src"><td class="n"><span class="nm"><span class="tw">▼</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 4.2c0-.7.5-1.2 1.2-1.2h3.6l1.4 1.5h6.6c.7 0 1.2.5 1.2 1.2v6.9c0 .7-.5 1.2-1.2 1.2H2.2C1.5 13.8 1 13.3 1 12.6Z" fill="var(--fd-folder)"/></svg>src</span></td><td class="t"><span class="tl">Today at 14:02</span><span class="ts">14:02</span></td><td class="s">--</td><td class="k">Folder</td></tr>
+                <tr id="r-api" role="option" aria-selected="false" data-ql="folder" data-path="src › api"><td class="n i1"><span class="nm"><span class="tw">▼</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 4.2c0-.7.5-1.2 1.2-1.2h3.6l1.4 1.5h6.6c.7 0 1.2.5 1.2 1.2v6.9c0 .7-.5 1.2-1.2 1.2H2.2C1.5 13.8 1 13.3 1 12.6Z" fill="var(--fd-folder)"/></svg>api</span></td><td class="t"><span class="tl">Today at 14:02</span><span class="ts">14:02</span></td><td class="s">--</td><td class="k">Folder</td></tr>
+                <tr id="r-inv" role="option" aria-selected="false" data-s="1" data-ql="py" data-path="src › api › invoices.py"><td class="n i2"><span class="nm"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="1.5" width="11" height="13" rx="1" fill="none" stroke="currentColor" stroke-width="1"/><path d="M5 5.5h6M5 8h6M5 10.5h4" stroke="currentColor" stroke-width="1"/></svg>invoices.py</span></td><td class="t"><span class="tl">Today at 14:02</span><span class="ts">14:02</span></td><td class="s">3 KB</td><td class="k">Python Script</td></tr>
+                <tr id="r-tests" role="option" aria-selected="false" data-ql="folder" data-path="tests"><td class="n"><span class="nm"><span class="tw">▼</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 4.2c0-.7.5-1.2 1.2-1.2h3.6l1.4 1.5h6.6c.7 0 1.2.5 1.2 1.2v6.9c0 .7-.5 1.2-1.2 1.2H2.2C1.5 13.8 1 13.3 1 12.6Z" fill="var(--fd-folder)"/></svg>tests</span></td><td class="t"><span class="tl">Today at 14:02</span><span class="ts">14:02</span></td><td class="s">--</td><td class="k">Folder</td></tr>
+                <tr id="r-test" role="option" aria-selected="false" data-s="2" data-ql="test" data-path="tests › test_invoices_export.py"><td class="n i1"><span class="nm"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="1.5" width="11" height="13" rx="1" fill="none" stroke="currentColor" stroke-width="1"/><path d="M5 5.5h6M5 8h6M5 10.5h4" stroke="currentColor" stroke-width="1"/></svg>test_invoices_export.py</span></td><td class="t"><span class="tl">Today at 14:02</span><span class="ts">14:02</span></td><td class="s">1 KB</td><td class="k">Python Script</td></tr>
+                <tr id="r-pyproject" role="option" aria-selected="false" data-ql="toml" data-path="pyproject.toml"><td class="n"><span class="nm"><span class="tw"></span><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="1.5" width="11" height="13" rx="1" fill="none" stroke="currentColor" stroke-width="1"/></svg>pyproject.toml</span></td><td class="t"><span class="tl">Yesterday at 18:22</span><span class="ts">Yesterday</span></td><td class="s">1 KB</td><td class="k">TOML</td></tr>
+                <tr id="r-readme" role="option" aria-selected="false" data-ql="md" data-path="README.md"><td class="n"><span class="nm"><span class="tw"></span><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="1.5" width="11" height="13" rx="1" fill="none" stroke="currentColor" stroke-width="1"/></svg>README.md</span></td><td class="t"><span class="tl">12 Sep 2026 at 09:14</span><span class="ts">12 Sep</span></td><td class="s">4 KB</td><td class="k">Markdown</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="fd-path" id="fd-path">dev-box › api › reports › latency.png</div>
+          <div class="ql" id="ql" role="dialog" aria-label="Quick Look" hidden>
+            <div class="ql-bar"><button type="button" id="ql-close" aria-label="Close Quick Look">✕</button><b id="ql-name">latency.png</b><span>Open with Preview</span></div>
+            <div class="ql-body" id="ql-body"></div>
+          </div>
+        </div>
+      </div>
+      <p class="fd-hint">Click a row. <kbd>↑</kbd> <kbd>↓</kbd> move, <kbd>Space</kbd> opens Quick Look. The cloud marks a file whose contents are still on dev-box.</p>
+      <div class="dim">
+        <div class="rule" aria-hidden="true"><i style="width:7.05%"></i></div>
+        <div class="v"><span>first <code>ls -la</code>, 1,000 files:</span><span><b>23.2 ms</b> Unlatch</span><span>· sshfs 329 ms</span></div>
+        <div class="c"><span>40 ms RTT, 50 Mbit/s</span> · <span>Linux test box</span> · <span>rtt40-bw50, preliminary</span> · <a href="#numbers">conditions</a></div>
+      </div>
+    </figure>
+  </div>
+</section>
+
+<!-- ============ fig. 1b: the VM side, same minute ============ -->
+<section class="sig" aria-label="Illustration: the agent on the VM and the inotify events the daemon pushes">
+  <div class="figcap">
+    <span><b>fig. 1b</b> &nbsp;the same minute on <b>dev-box</b>. The agent writes. The daemon sees each inotify event and pushes it over ssh. Finder lists the file from the Mac's replica.</span>
+    <span class="illus">illustration · not a recording</span>
+  </div>
+  <div class="stage" id="stage">
+    <div class="term" aria-label="Terminal on the VM">
+      <div class="bar"><i></i><i></i><i></i><span>ssh dev-box · ~/api · claude</span></div>
+      <div class="scr">
+<div><span class="d">you@dev-box:~/api$</span> claude</div>
+<div><span class="a">&gt;</span> add an /invoices export endpoint and a</div>
+<div>  test, then plot p95 latency to reports/</div>
+<div> </div>
+<div data-s="1"><span class="g">●</span> Write(src/api/invoices.py)</div>
+<div data-s="1"><span class="d">  └ wrote 84 lines</span></div>
+<div data-s="2"><span class="g">●</span> Write(tests/test_invoices_export.py)</div>
+<div data-s="2"><span class="d">  └ wrote 41 lines</span></div>
+<div><span class="g">●</span> Bash(pytest -q tests/)</div>
+<div><span class="d">  └ 3 passed in 0.82s</span></div>
+<div data-s="3"><span class="g">●</span> Bash(python scripts/plot_latency.py)</div>
+<div data-s="3"><span class="d">  └ wrote reports/latency.png</span></div>
+<div> </div>
+<div><span class="a">●</span> Done. Endpoint, test and chart are in.</div>
+      </div>
+    </div>
+    <div class="evlog" aria-label="Events the daemon pushes over ssh">
+      <div class="th"><span><b>daemon on dev-box</b> · inotify on ~/api</span><span>→ 1 ssh connection</span></div>
+      <ol>
+        <li><span class="tm">14:01:58</span><span class="ev q">watching</span><span class="pa">~/<wbr>api</span><span class="sz">1,214 entries</span></li>
+        <li data-s="1"><span class="tm">14:02:09</span><span class="ev">IN_MOVED_TO</span><span class="pa">src/<wbr>api/<wbr>invoices.py</span><span class="sz">2,917 B</span><span class="why">atomic save: rename over invoices.py.tmp</span></li>
+        <li data-s="2"><span class="tm">14:02:19</span><span class="ev">IN_CLOSE_WRITE</span><span class="pa">tests/<wbr>test_invoices_export.py</span><span class="sz">1,388 B</span></li>
+        <li><span class="tm">14:02:24</span><span class="ev">IN_CLOSE_WRITE</span><span class="pa">.pytest_cache/<wbr>v/<wbr>cache/<wbr>nodeids</span><span class="sz">214 B</span><span class="why">dotfile: synced, hidden in Finder</span></li>
+        <li data-s="3"><span class="tm">14:03:02</span><span class="ev">IN_CLOSE_WRITE</span><span class="pa">reports/<wbr>latency.png</span><span class="sz">151,552 B</span></li>
+        <li data-s="3"><span class="tm">14:03:02</span><span class="ev q">prefetch</span><span class="pa">reports/<wbr>latency.png</span><span class="sz">≤ 256 KiB</span><span class="why">read requested by the Mac: the folder is open in Finder, so small files come along</span></li>
+      </ol>
+      <div class="tf">inotify here. On NFS, or past the watch limit, the daemon polls instead.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ INSTALL ============ -->
+<section class="sec" id="install" aria-labelledby="install-h">
+  <div class="rail">Install<span>two lines, two machines</span></div>
+  <div class="body">
+    <h2 class="hd" id="install-h">One line on the VM. One line on your Mac.</h2>
+    <p class="lede">The VM side looks at the folder and tells you what to type on the Mac. Nothing to configure on the VM.</p>
+    <div>
+      <div class="tabs" role="tablist" aria-label="Install method">
+        <button class="tab" role="tab" id="t-term" aria-selected="true" aria-controls="p-term" tabindex="0">Terminal</button>
+        <button class="tab" role="tab" id="t-agent" aria-selected="false" aria-controls="p-agent" tabindex="-1">Claude Code / Codex</button>
+      </div>
+      <div class="panel" role="tabpanel" id="p-term" aria-labelledby="t-term">
+        <ol class="steps">
+          <li><div class="k">VM<span>step 1</span></div><div>
+            <p>In the folder you want to see, run:</p>
+            <div class="cmd"><pre><span class="p">$ </span>cd ~/api &amp;&amp; npx unlatch share</pre><button class="copy" type="button" data-copy="cd ~/api &amp;&amp; npx unlatch share">Copy</button></div>
+            <p>It checks inotify limits and free disk, then prints the line for your Mac. On a cloud VM behind NAT it looks up the public address. If it cannot tell how your Mac reaches the VM, it says so and leaves a spot for the host you ssh to.</p>
+          </div></li>
+          <li><div class="k">Mac<span>step 2</span></div><div>
+            <p>Paste the line it printed. It looks like this:</p>
+            <div class="cmd"><pre><span class="p">$ </span>npx unlatch connect 'you@dev-box:~/api'</pre><button class="copy" type="button" data-copy="npx unlatch connect 'you@dev-box:~/api'">Copy</button></div>
+            <p>The first run installs the Unlatch app and may ask you to allow it in System Settings › Login Items. Then dev-box shows up in Finder under <b>Locations</b>.</p>
+          </div></li>
+          <li><div class="k">Linux<span>desktop</span></div><div>
+            <p>No Finder? Add <code>--mount</code> for a FUSE mount instead.</p>
+            <div class="cmd"><pre><span class="p">$ </span>npx unlatch connect 'you@dev-box:~/api' --mount ~/dev-box</pre><button class="copy" type="button" data-copy="npx unlatch connect 'you@dev-box:~/api' --mount ~/dev-box">Copy</button></div>
+          </div></li>
+        </ol>
+      </div>
+      <div class="panel" role="tabpanel" id="p-agent" aria-labelledby="t-agent" hidden>
+        <ol class="steps">
+          <li><div class="k">VM<span>agent</span></div><div>
+            <p>Paste this into Claude Code or Codex running on the VM:</p>
+            <div class="cmd"><pre class="wrap"><span class="p">&gt; </span>Set up Unlatch so I can browse this machine in Finder: <span class="url">https://unlatch.dev/SKILL.md</span></pre><button class="copy" type="button" data-copy="Set up Unlatch so I can browse this machine in Finder: https://unlatch.dev/SKILL.md">Copy</button></div>
+            <p>The agent reads SKILL.md, runs <code>npx -y unlatch share --json</code> and replies with one line. It never asks for a password or a key, and it never opens a port.</p>
+          </div></li>
+          <li><div class="k">Mac<span>you</span></div><div>
+            <p>Run the line the agent gave you in Terminal on your Mac. That is the whole install.</p>
+          </div></li>
+        </ol>
+      </div>
+    </div>
+    <div class="reqs">
+      <div><b>Mac</b>macOS 13 or later</div>
+      <div><b>VM</b>Linux, reachable by ssh, with inotify</div>
+      <div><b>Both</b>Node, only to run npx</div>
+    </div>
+  </div>
+  <aside class="margin">
+    <p><b>Pre-release.</b> The package is not on npm yet and unlatch.dev is coming soon. These are the commands that will work at release.</p>
+    <p>If ssh needs a password, a 2FA code or a new host key, the Mac app shows ssh's own prompt when <b>you</b> connect. Background reconnects never prompt.</p>
+    <p>Something off? <code>npx unlatch doctor</code> checks the setup and says how to fix what it finds.</p>
+  </aside>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section class="sec" id="how" aria-labelledby="how-h">
+  <div class="rail">Description<span>how it works</span></div>
+  <div class="body wide">
+    <h2 class="hd" id="how-h">The VM pushes. Your Mac already has the tree.</h2>
+    <p class="lede" style="margin-bottom:26px">Network drives feel slow because every listing waits for a round trip. Unlatch keeps the whole folder tree on your Mac and lets the VM tell it what changed.</p>
+    <div class="diag" role="img" aria-label="Diagram: Finder and any Mac app talk to Apple's File Provider, which reads from the local replica. One ssh connection links it to the daemon on the VM, which watches the folder with inotify.">
+      <div class="side">
+        <div class="lbl"><span>your Mac</span><span>macOS 13+</span></div>
+        <div class="box"><b>Finder · any Mac app</b><span>Quick Look, Preview, Slack, ⌘C ⌘V</span></div>
+        <div class="down">↕</div>
+        <div class="box"><b>File Provider</b><span>a real Finder location</span></div>
+        <div class="down">↕</div>
+        <div class="box k"><b>replica + content cache</b><span>whole tree local; contents on open</span></div>
+      </div>
+      <div class="wire">
+        <b>one ssh connection</b>
+        <div class="pipe" aria-hidden="true"></div>
+        <span>changes, pushed</span>
+        <div class="pipe back" aria-hidden="true"></div>
+        <span>reads, saves</span>
+      </div>
+      <div class="side">
+        <div class="lbl"><span>the VM</span><span>Linux</span></div>
+        <div class="box k"><b>daemon</b><span>small Rust binary · sha256-verified</span></div>
+        <div class="down">↕</div>
+        <div class="box"><b>index + inotify</b><span>polls on network filesystems</span></div>
+        <div class="down">↕</div>
+        <div class="box"><b>~/api</b><span>where your agent writes</span></div>
+      </div>
+    </div>
+    <div class="points">
+      <div><h3>The daemon watches</h3><p>A small Rust daemon on the VM indexes the folder and watches it with inotify. On a network filesystem, or for folders beyond the VM's inotify watch limit, it falls back to polling every 1–30 s, and <code>npx unlatch doctor</code> tells you when.</p></div>
+      <div><h3>One ssh connection</h3><p>Every change is pushed over a single ssh connection, using your <code>~/.ssh/config</code>, agent, ProxyJump and Tailscale. No ports are opened.</p></div>
+      <div><h3>Listing never waits</h3><p>Your Mac keeps a local replica of the whole folder tree. Opening a folder in Finder is a local lookup. Heavy folders such as <code>node_modules</code> and <code>.git</code> are listed the first time you open them.</p></div>
+      <div><h3>Contents on demand</h3><p>A file downloads the first time you open it. Small files are fetched ahead when you look at their folder. Saves go straight back.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ NUMBERS ============ -->
+<section class="sec" id="numbers" aria-labelledby="numbers-h">
+  <div class="rail">Benchmarks<span>vs sshfs</span></div>
+  <div class="body">
+    <h2 class="hd" id="numbers-h">Measured next to sshfs, on the same shaped link.</h2>
+    <div class="readout">
+      <div class="ro-head">
+        <span><a href="https://github.com/sudhanshuheda/unlatch/blob/dev/bench/results/SCORECARD.md"><b>bench/results/SCORECARD.md</b></a> · profile rtt40-bw50 · 1 Oct 2026</span>
+        <span class="pre">preliminary</span>
+      </div>
+
+      <div class="metric">
+        <div class="q">First <code>ls -la</code> of a 1,000-file folder</div>
+        <div class="row us"><span class="who">unlatch</span><div class="track"><div class="fill" style="width:7.05%"></div></div><span class="v">23.2 ms</span></div>
+        <div class="row them"><span class="who">sshfs</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="v">329 ms</span></div>
+        <div class="x">14.2×<small>vs sshfs</small></div>
+        <p class="fn">The first listing after mounting. Unlatch's folder tree is already synced by then, which is the design; sshfs starts with an empty cache.</p>
+      </div>
+
+      <div class="metric">
+        <div class="q">A change on the VM becomes visible (p50)</div>
+        <div class="row us"><span class="who">unlatch</span><div class="track"><div class="fill" style="width:55.61%"></div></div><span class="v">22.8 ms</span></div>
+        <div class="row them"><span class="who">sshfs</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="v">41.0 ms</span></div>
+        <div class="x">1.8×<small>vs sshfs</small></div>
+        <p class="fn">From the write on the VM until the client-side engine (on Linux here) has the file. sshfs here polls <code>stat</code> on the exact path. Its folder listings sit behind a 20 s directory cache, which quick mode does not measure.</p>
+      </div>
+
+      <div class="metric">
+        <div class="q">Initial sync of a 100k-file tree</div>
+        <div class="row us"><span class="who">unlatch</span><div class="track"><div class="fill" style="width:0.35%"></div></div><span class="v">1.18 s</span></div>
+        <div class="row them"><span class="who">sshfs</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="v">~338 s</span></div>
+        <div class="x">~287.4×<small>not like-for-like</small></div>
+        <p class="fn">Until the tree is known on the client. Unlatch's figure covers the 101,006 entries outside heavy folders; the 30,007 inside <code>node_modules</code>, <code>.git</code> and the like are listed when first opened. The sshfs figure is a walk of all 131,013 entries, extrapolated from 8 s, so the ratio overstates the gap.</p>
+      </div>
+
+      <div class="metric">
+        <div class="q">Cold open of a 4 KiB file</div>
+        <div class="row us"><span class="who">unlatch</span><div class="track"><div class="fill" style="width:34.11%"></div></div><span class="v">42.3 ms</span></div>
+        <div class="row them"><span class="who">sshfs</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="v">124 ms</span></div>
+        <div class="x">2.9×<small>vs sshfs</small></div>
+        <p class="fn">A file never opened before. One round trip is 40 ms, so this is close to the floor.</p>
+      </div>
+
+      <div class="metric">
+        <div class="q">p99 metadata request during a big transfer</div>
+        <div class="row us"><span class="who">unlatch</span><div class="track"><div class="fill" style="width:5.58%"></div></div><span class="v">89.1 ms</span></div>
+        <div class="row them"><span class="who">sshfs</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="v">1,597 ms</span></div>
+        <div class="x">17.9×<small>vs sshfs</small></div>
+        <p class="fn">While a large download and upload share the link. Unlatch: the worse of a ping and a folder listing; sshfs: an uncached <code>lstat</code>. <span class="miss">Unlatch misses its 70 ms target in this run. The goal is RTT + 30 ms.</span></p>
+      </div>
+
+      <div class="metric lose">
+        <div class="q">Warm <code>ls -la</code>, 1,000 files: sshfs is faster</div>
+        <div class="row us"><span class="who">unlatch</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="v">10.4 ms</span></div>
+        <div class="row them"><span class="who">sshfs</span><div class="track"><div class="fill" style="width:66.63%"></div></div><span class="v">6.93 ms</span></div>
+        <div class="x">0.7×<small>sshfs wins</small></div>
+        <p class="fn">Once its cache is warm, sshfs lists faster. Local disk on the same box: 10.6 ms.</p>
+      </div>
+    </div>
+  </div>
+  <aside class="margin">
+    <p><b>Conditions.</b> 40 ms RTT, 50 Mbit/s nominal. Measured: RTT p50 40.38 ms, 46.9 Mbit/s each way.</p>
+    <p>One quick-mode run on a shared Linux test box (124 CPUs, load average 39 to 48 during the run) with kernel network shaping (tc netem in a network namespace), Linux FUSE client, quick mode. Unlatch and sshfs cross the same shaped path. In this profile that path is a plain TCP bridge, not ssh; the scorecard's <code>-ssh</code> profiles run through real ssh.</p>
+    <p><b>Both clients ran on Linux.</b> The Mac's File Provider layer is not in these numbers. Nothing here was measured on a Mac yet.</p>
+    <p>Medians unless marked p99. Each pair of bars is drawn to its own scale. Shorter is better.</p>
+  </aside>
+</section>
+
+<!-- ============ EVERY MAC APP ============ -->
+<section class="sec" id="apps" aria-labelledby="apps-h">
+  <div class="rail">Examples<span>what you can do</span></div>
+  <div class="body wide">
+    <h2 class="hd" id="apps-h">It is a real Finder location. Every Mac app can use it.</h2>
+    <p class="lede">Apple's File Provider puts the VM folder in your Finder sidebar. Anything that works with a folder works with it. Your editor stays where it is.</p>
+    <ul class="keys">
+      <li><div class="caps" aria-hidden="true"><span class="cap wide">space</span></div><h3>Quick Look what the agent made.</h3><p>Select <code>reports/latency.png</code> and press Space.</p></li>
+      <li><div class="caps" aria-hidden="true"><span class="cap act">drag → Slack</span></div><h3>Drag a log into a thread.</h3><p>Pull <code>logs/run-0412.txt</code> out of Finder. It is a normal file.</p></li>
+      <li><div class="caps" aria-hidden="true"><span class="cap sym">⌘</span><span class="cap">O</span></div><h3>Open it in Preview.</h3><p>A PDF in Preview, a CSV in Numbers, an SVG in your browser.</p></li>
+      <li><div class="caps" aria-hidden="true"><span class="cap sym">⌘</span><span class="cap">C</span><span class="cap sym">⌘</span><span class="cap">V</span></div><h3>Copy to and from your Desktop.</h3><p>Paste into dev-box and the save goes straight back to the VM.</p></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ VERIFIED ============ -->
+<section class="sec" id="verified" aria-labelledby="verified-h">
+  <div class="rail">Verification<span>what runs before a change lands</span></div>
+  <div class="body wide">
+    <h2 class="hd" id="verified-h">How it is checked, in the order it runs.</h2>
+    <p class="lede">The hardest behaviour lives inside fileproviderd, a macOS daemon that CI cannot run. So there is a stand-in, and the engine gets hit from every side.</p>
+    <ol class="log">
+      <li><div class="tag">fpsim</div><div><h3>A simulator of macOS's fileproviderd</h3><p>It drives the engine through the same IPC the Finder extension uses and models File Provider quirks measured on macOS: folders enumerated only once, backoff after errors, failed fetches never retried, case and Unicode twins. They come from the 81-entry catalog of the open <a href="https://github.com/alecdwm/sshdrive">sshdrive</a> project, credited as prior art. Eviction, Finder decorations and extension launch timing are not modelled.</p></div><div class="res"><b>29 of 81</b>quirks modelled</div></li>
+      <li class="pass"><div class="tag">fuzz</div><div><h3>Randomised concurrent Mac and agent edits</h3><p>Atomic saves, renames, <code>rm -rf</code> and <code>git checkout</code>-style churn on the VM. Finder operations on the Mac. Killed daemons, cut links and crash replays. The trees must converge, and no write on the VM may be lost.</p></div><div class="res"><b>500/500</b>seeds pass</div></li>
+      <li><div class="tag">stress</div><div><h3>Stress campaigns with timing perturbations</h3><p>A real directory churned with hard links and daemon restarts, under several timing shapes. The replica is checked against the disk in both directions.</p></div><div class="res"><b>disk ⇄ replica</b>checked both ways</div></li>
+      <li><div class="tag">bench</div><div><h3>A network-shaped benchmark against sshfs</h3><p>Both cross the same kernel-shaped link. The numbers above come from it, with their conditions.</p></div><div class="res"><b>rtt40-bw50</b>and other profiles</div></li>
+      <li><div class="tag">review</div><div><h3>Adversarial review</h3><p>Reviewers attacked the design and the code. Every finding was reproduced independently before it was fixed.</p></div><div class="res"><b>repro first</b>then fix</div></li>
+      <li class="gap"><div class="tag">mac</div><div><h3>Not yet run on a real Mac</h3><p>The Mac app builds in CI. Measuring what you see in Finder on real hardware is the last step before release, and it has not happened yet.</p></div><div class="res"><b>open</b>before release</div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============ SECURITY ============ -->
+<section class="sec" id="security" aria-labelledby="security-h">
+  <div class="rail">Security<span>what it touches</span></div>
+  <div class="body">
+    <h2 class="hd" id="security-h">It rides the ssh you already trust.</h2>
+    <dl class="opts">
+      <dt>no open ports</dt><dd>Unlatch opens no listening port on either machine. Everything goes through one session started by your system <code>ssh</code>.</dd>
+      <dt>no stored secrets</dt><dd>Unlatch never stores passwords, passphrases or keys. With key-based ssh nothing is asked. If your ssh needs a password, a 2FA code or trust in a new host key, the Mac app shows ssh's own prompt when you connect. Background reconnects never prompt.</dd>
+      <dt>VM = untrusted input</dt><dd>Symlinks cannot reach outside the shared folder. Executable bits are hidden by default.</dd>
+      <dt>conflict copies</dt><dd>If you and the agent change the same file, you get a conflict copy next to it. Nothing is overwritten silently.</dd>
+      <dt>sha256-verified</dt><dd>The daemon binary is checked against its SHA-256 before it runs on the VM.</dd>
+    </dl>
+  </div>
+  <aside class="margin">
+    <p>A conflict copy is named like<br><b>invoices (conflict from your-mac 2026-10-01 14.05).py</b></p>
+    <p>The daemon keeps its own state outside the shared folder.</p>
+  </aside>
+</section>
+
+<!-- ============ COMPARE ============ -->
+<section class="sec" id="compare" aria-labelledby="compare-h">
+  <div class="rail">See also<span>other ways in</span></div>
+  <div class="body wide">
+    <h2 class="hd" id="compare-h">What you might use today.</h2>
+    <p class="scroll-hint">Scroll the table sideways →</p>
+    <div class="tscroll" tabindex="0" role="region" aria-label="Comparison table">
+      <table class="cmp">
+        <thead><tr><th scope="col"></th><th scope="col" class="us">Unlatch</th><th scope="col">sshfs</th><th scope="col">Mountain Duck</th><th scope="col">VS Code / Cursor Remote-SSH</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Where the files show up</th><td class="us">Finder sidebar, under Locations</td><td>A mount point (on macOS via macFUSE<sup><a href="#s3">3</a></sup>)</td><td>Finder<sup><a href="#s1">1</a></sup></td><td>Inside the editor<sup><a href="#s2">2</a></sup></td></tr>
+          <tr><th scope="row">How VM changes reach you</th><td class="us">Pushed as they happen (inotify over ssh)</td><td>Folder listings cached, 20 s by default<sup><a href="#s4">4</a></sup></td><td>Re-checks open folders about once a minute<sup><a href="#s1">1</a></sup></td><td>A server runs on the VM<sup><a href="#s2">2</a></sup></td></tr>
+          <tr><th scope="row">Quick Look, Preview, drag to Slack</th><td class="us">Yes</td><td>Yes, as a mounted folder</td><td class="na">not checked</td><td>Not from Finder. Files stay in the editor<sup><a href="#s2">2</a></sup></td></tr>
+          <tr><th scope="row">First <code>ls -la</code>, 1,000 files, 40 ms RTT</th><td class="us">23.2 ms</td><td>329 ms</td><td class="na">not measured</td><td class="na">not measured</td></tr>
+          <tr><th scope="row">License</th><td class="us">MIT OR Apache-2.0</td><td class="na">see project</td><td class="na">see vendor</td><td class="na">see vendor</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <ol class="srcs">
+      <li id="s1">Mountain Duck interface docs: <a href="https://docs.cyberduck.io/mountainduck/interface/">docs.cyberduck.io/mountainduck/interface/</a></li>
+      <li id="s2">VS Code Remote-SSH docs: <a href="https://code.visualstudio.com/docs/remote/ssh">code.visualstudio.com/docs/remote/ssh</a></li>
+      <li id="s3">macFUSE: <a href="https://macfuse.github.io/">macfuse.github.io</a></li>
+      <li id="s4">sshfs manual, <code>dcache_timeout</code>: <a href="https://github.com/libfuse/sshfs/blob/master/sshfs.rst">github.com/libfuse/sshfs</a></li>
+    </ol>
+    <p class="lede" style="font-size:17px">If you live in one editor all day, Remote-SSH is a good fit. Unlatch is for everything outside it.</p>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section class="sec" id="faq" aria-labelledby="faq-h">
+  <div class="rail">Questions<span>you might have</span></div>
+  <div class="body wide">
+    <h2 class="hd" id="faq-h">Questions you might have.</h2>
+    <div class="qa">
+      <div><h3>Can I use it today?</h3><p>Not yet. It is pre-release. The source is at <a href="https://github.com/sudhanshuheda/unlatch">github.com/sudhanshuheda/unlatch</a> (open source), the npm package is not published yet, and unlatch.dev is coming soon.</p></div>
+      <div><h3>Does it download my whole repo?</h3><p>No. Names, sizes and dates sync up front; heavy folders such as <code>node_modules</code> and <code>.git</code> are listed when you first open them. A file's contents download when you open it. Small files are fetched ahead when you look at their folder.</p></div>
+      <div><h3>Does it work with Tailscale or a bastion host?</h3><p>If <code>ssh dev-box</code> works from your Mac, Unlatch can use it. It reads your <code>~/.ssh/config</code>, agent and ProxyJump.</p></div>
+      <div><h3>What if my agent and I edit the same file?</h3><p>You get a conflict copy next to the file. Neither version is lost.</p></div>
+      <div><h3>My folder is on NFS. Does it work?</h3><p>Yes, with polling. inotify does not see changes that other machines make on a network filesystem, so the daemon polls there.</p></div>
+      <div><h3>Who makes it?</h3><p>It is a personal open-source project, MIT OR Apache-2.0. It is not affiliated with any company.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ closing ============ -->
+<section class="close" aria-labelledby="close-h">
+  <h2 id="close-h">Your VM, in <span class="rev">Finder.</span></h2>
+  <div class="synopsis two" role="group" aria-label="Install again">
+    <div class="syn">
+      <div class="lab"><span>Run in a terminal</span><span>VM or Mac</span></div>
+      <div class="line"><pre><span class="p">$ </span>npx unlatch</pre><button class="copy" type="button" data-copy="npx unlatch">Copy</button></div>
+    </div>
+    <div class="syn rev">
+      <div class="lab"><span>Or paste into Claude Code or Codex on the VM</span><span>SKILL.md</span></div>
+      <div class="line"><pre><span class="p">&gt; </span>Set up Unlatch so I can browse this machine in Finder: <span class="url">https://unlatch.dev/SKILL.md</span></pre><button class="copy" type="button" data-copy="Set up Unlatch so I can browse this machine in Finder: https://unlatch.dev/SKILL.md">Copy</button></div>
+    </div>
+  </div>
+  <div class="status">
+    <span><span class="dot" aria-hidden="true"></span>pre-release: not on npm yet</span>
+    <span><a href="https://github.com/sudhanshuheda/unlatch">GitHub</a> (open source)</span>
+    <span><a href="https://unlatch.dev/SKILL.md">SKILL.md</a> · <a href="https://unlatch.dev/llms.txt">llms.txt</a> (unlatch.dev coming soon)</span>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="colophon">
+    <span>Unlatch is a personal open-source project, not affiliated with any company.</span>
+    <a href="https://github.com/sudhanshuheda/unlatch">github.com/sudhanshuheda/unlatch (open source)</a>
+    <span>unlatch.dev · coming soon</span>
+    <span>MIT OR Apache-2.0</span>
+    <span>Prior art: <a href="https://github.com/alecdwm/sshdrive">sshdrive</a></span>
+  </div>
+  <div class="foot">
+    <span>unlatch pre-release</span>
+    <span class="m2">October 2026</span>
+    <span class="r">UNLATCH(1)</span>
+  </div>
+</footer>
+
+</div>
+
+<script>
+(function () {
+  // ---- copy buttons: clipboard API, select-the-text fallback ----
+  function selectFallback(btn) {
+    var pre = btn.parentNode.querySelector('pre');
+    if (!pre) return false;
+    var r = document.createRange(); r.selectNodeContents(pre);
+    var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+    try { return document.execCommand('copy'); } catch (e) { return false; }
+  }
+  function done(btn, ok) {
+    btn.textContent = ok ? 'Copied' : 'Selected';
+    btn.classList.add('done');
+    clearTimeout(btn._t);
+    btn._t = setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1600);
+  }
+  document.querySelectorAll('.copy').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var text = btn.getAttribute('data-copy');
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { done(btn, true); }, function () { done(btn, selectFallback(btn)); });
+      } else { done(btn, selectFallback(btn)); }
+    });
+  });
+
+  // ---- install tabs ----
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+  function pick(t) {
+    tabs.forEach(function (x) {
+      var on = x === t;
+      x.setAttribute('aria-selected', on ? 'true' : 'false');
+      x.tabIndex = on ? 0 : -1;
+      document.getElementById(x.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach(function (t, i) {
+    t.addEventListener('click', function () { pick(t); });
+    t.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        var n = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+        pick(n); n.focus(); e.preventDefault();
+      }
+    });
+  });
+
+  // ---- fig. 1: step a highlight through terminal line, inotify event, Finder row ----
+  // Everything is visible at rest; this only moves a highlight.
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var hotEls = document.querySelectorAll('#stage [data-s], #finder [data-s]');
+  var timer = null;
+  if (!reduce && hotEls.length) {
+    var step = 0;
+    timer = setInterval(function () {
+      step = step % 4 + 1;
+      hotEls.forEach(function (el) { el.classList.toggle('hot', el.getAttribute('data-s') === String(step)); });
+    }, 1700);
+  }
+  function stopCycle() {
+    if (!timer) return;
+    clearInterval(timer); timer = null;
+    hotEls.forEach(function (el) { el.classList.remove('hot'); });
+  }
+
+  // ---- fig. 1a: Finder rows you can select, with Quick Look ----
+  var list = document.getElementById('fd-list');
+  if (!list) return;
+  var rows = Array.prototype.slice.call(list.querySelectorAll('tbody tr'));
+  var pathEl = document.getElementById('fd-path');
+  var ql = document.getElementById('ql');
+  var qlName = document.getElementById('ql-name');
+  var qlBody = document.getElementById('ql-body');
+  var qlBtn = document.getElementById('ql-btn');
+  var cur = 0;
+  rows.forEach(function (r, i) { if (r.getAttribute('aria-selected') === 'true') cur = i; });
+
+  var chart = '<svg class="ql-chart" viewBox="0 0 320 190" role="img" aria-label="Line chart: p95 latency of GET /invoices/export over 24 hours">' +
+    '<rect width="320" height="190" fill="var(--chart-bg)"/>' +
+    '<text x="14" y="22" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="var(--fd-ink)">GET /invoices/export · p95 latency</text>' +
+    '<g stroke="var(--chart-grid)"><path d="M40 50H306M40 90H306M40 130H306M40 170H306"/></g>' +
+    '<g font-family="system-ui,sans-serif" font-size="9" fill="var(--fd-muted)"><text x="14" y="53">60 ms</text><text x="14" y="93">40</text><text x="14" y="133">20</text><text x="14" y="173">0</text><text x="40" y="184">00:00</text><text x="150" y="184">12:00</text><text x="278" y="184">24:00</text></g>' +
+    '<path d="M40 104L62 98L84 106L106 92L128 96L150 84L172 90L194 80L216 88L238 74L260 82L282 70L306 76" fill="none" stroke="var(--chart-line)" stroke-width="2" stroke-linejoin="round"/>' +
+    '</svg>';
+  function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+  var previews = {
+    chart: chart,
+    py: '<pre>' + esc('from fastapi import APIRouter, Query\nfrom fastapi.responses import StreamingResponse\n\nfrom ..db import invoices_between\nfrom ..csv import rows_to_csv\n\nrouter = APIRouter(prefix="/invoices")\n\n\n@router.get("/export")\ndef export(start: str = Query(...), end: str = Query(...)):\n    rows = invoices_between(start, end)\n    return StreamingResponse(rows_to_csv(rows),\n                             media_type="text/csv")') + '</pre>',
+    test: '<pre>' + esc('from fastapi.testclient import TestClient\n\nfrom api.main import app\n\nclient = TestClient(app)\n\n\ndef test_export_returns_csv():\n    r = client.get("/invoices/export",\n                   params={"start": "2026-09-01",\n                           "end": "2026-09-30"})\n    assert r.status_code == 200\n    assert r.headers["content-type"].startswith("text/csv")') + '</pre>',
+    toml: '<pre>' + esc('[project]\nname = "api"\nversion = "0.4.0"\nrequires-python = ">=3.11"\ndependencies = ["fastapi", "uvicorn"]\n\n[tool.pytest.ini_options]\ntestpaths = ["tests"]') + '</pre>',
+    md: '<pre>' + esc('# api\n\nInvoices service.\n\n    uvicorn api.main:app --reload\n    pytest -q') + '</pre>',
+    folder: '<p class="msg"><b>Folder</b>Listed from the replica on this Mac. No round trip to dev-box.</p>',
+    cloud: '<p class="msg"><b>Not on this Mac yet</b>Opening it downloads 41.2 MB from dev-box. Small files in an open folder come ahead of time. This one waits until you ask.</p>'
+  };
+  function renderQL() {
+    var r = rows[cur];
+    var t = '';
+    r.querySelector('.nm').childNodes.forEach(function (n) { if (n.nodeType === 3) t += n.textContent; });
+    qlName.textContent = t.trim();
+    qlBody.innerHTML = previews[r.getAttribute('data-ql')] || previews.folder;
+  }
+  function select(i) {
+    if (i < 0 || i >= rows.length) return;
+    rows.forEach(function (r, j) { r.setAttribute('aria-selected', j === i ? 'true' : 'false'); });
+    cur = i;
+    list.setAttribute('aria-activedescendant', rows[i].id);
+    pathEl.textContent = 'dev-box › api › ' + rows[i].getAttribute('data-path');
+    if (!ql.hidden) renderQL();
+  }
+  function setQL(open) {
+    if (open) renderQL();
+    ql.hidden = !open;
+    qlBtn.setAttribute('aria-pressed', open ? 'true' : 'false');
+  }
+  rows.forEach(function (r, i) {
+    r.addEventListener('click', function () { stopCycle(); select(i); list.focus(); });
+    r.addEventListener('dblclick', function () { setQL(true); });
+  });
+  list.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowDown') { stopCycle(); select(Math.min(cur + 1, rows.length - 1)); e.preventDefault(); }
+    else if (e.key === 'ArrowUp') { stopCycle(); select(Math.max(cur - 1, 0)); e.preventDefault(); }
+    else if (e.key === ' ' || e.key === 'Spacebar') { stopCycle(); setQL(ql.hidden); e.preventDefault(); }
+    else if (e.key === 'Escape') { setQL(false); }
+  });
+  qlBtn.addEventListener('click', function () { stopCycle(); setQL(ql.hidden); });
+  document.getElementById('ql-close').addEventListener('click', function () { setQL(false); list.focus(); });
+  ql.addEventListener('keydown', function (e) { if (e.key === 'Escape') { setQL(false); list.focus(); } });
+})();
+</script>
+</body>
+</html>

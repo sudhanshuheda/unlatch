@@ -1,0 +1,69 @@
+{
+  "_note": "Every number shown on the site comes from here, with its conditions. Each entry names its scorecard metric; site/build.sh and npm/unlatch/test/site.test.js fail when a value differs from the committed scorecard section named in `profile`. The `unlatch`/`unlatch_v` keys are this product's column (the scorecard calls it `unlatch`); the key name is kept until the npm tests are renamed with the package. `ratio` is the scorecard's own `× vs sshfs` cell. Preliminary: one quick-mode run on a shared, heavily loaded Linux test box with kernel network shaping (netem). Do not add a number without conditions.",
+  "_source": "bench/results/SCORECARD.md, section rtt40-bw50 (quick mode, 1 Oct 2026)",
+  "profile": "rtt40-bw50",
+  "setup": "shared Linux test box (124 CPUs, load average 39 to 48 during the run) with kernel network shaping (tc netem in a network namespace), Linux FUSE client, quick mode",
+  "net": "40 ms RTT, 50 Mbit/s",
+  "net_measured": "RTT p50 40.38 ms, 46.9 Mbit/s each way",
+  "date": "1 Oct 2026",
+  "ls_first": {
+    "label": "First ls -la of a 1,000-file folder",
+    "metric": "ls_la_cold_ms",
+    "unlatch": "23.2 ms",
+    "unlatch_v": 23.2,
+    "sshfs": "329 ms",
+    "sshfs_v": 329,
+    "ratio": "14.2×"
+  },
+  "vm_write_visible": {
+    "label": "A change on the VM becomes visible",
+    "metric": "visible_p50_ms",
+    "unlatch": "22.8 ms",
+    "unlatch_v": 22.8,
+    "sshfs": "41.0 ms",
+    "sshfs_v": 41.0,
+    "ratio": "1.8×",
+    "conditions": "p50, from the write on the VM until the Mac-side engine finds the file; sshfs: until a stat of the path succeeds"
+  },
+  "initial_sync": {
+    "label": "Initial sync of a 100k-file tree",
+    "metric": "full_tree_known_s",
+    "unlatch": "1.18 s",
+    "unlatch_v": 1.18,
+    "sshfs": "~338 s",
+    "sshfs_v": 338,
+    "ratio": "287.4×",
+    "sshfs_note": "full walk of all 131,013 entries, extrapolated from 8 s; Unlatch covers the 101,006 outside lazy folders (+30,007 listed on first open), so not like-for-like"
+  },
+  "open_4k_cold": {
+    "label": "Cold open of a 4 KiB file",
+    "metric": "open_4k_cold_ms",
+    "unlatch": "42.3 ms",
+    "unlatch_v": 42.3,
+    "sshfs": "124 ms",
+    "sshfs_v": 124,
+    "ratio": "2.9×"
+  },
+  "p99_meta": {
+    "label": "p99 metadata request during a big download and upload (Unlatch: worse of ping and folder listing; sshfs: uncached lstat)",
+    "metric": "p99_interactive_under_load_ms",
+    "unlatch": "89.1 ms",
+    "unlatch_v": 89.1,
+    "sshfs": "1,597 ms",
+    "sshfs_v": 1597,
+    "ratio": "17.9×",
+    "target_met": false,
+    "note": "misses its 70 ms target in this run"
+  },
+  "warm_ls": {
+    "label": "Warm ls -la of 1,000 files",
+    "metric": "ls_la_ms",
+    "unlatch": "10.4 ms",
+    "unlatch_v": 10.4,
+    "local": "10.6 ms",
+    "local_v": 10.6,
+    "sshfs": "6.93 ms",
+    "sshfs_v": 6.93,
+    "ratio": "0.7×"
+  }
+}

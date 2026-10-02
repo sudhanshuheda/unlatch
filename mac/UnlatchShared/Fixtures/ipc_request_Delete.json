@@ -1,0 +1,13 @@
+{
+  "call": 15,
+  "msg": {
+    "Delete": {
+      "id": 12,
+      "base": {
+        "content": 41,
+        "meta": 42
+      },
+      "recursive": true
+    }
+  }
+}

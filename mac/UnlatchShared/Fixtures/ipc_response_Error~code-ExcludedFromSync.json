@@ -1,0 +1,10 @@
+{
+  "call": 99,
+  "msg": {
+    "Error": {
+      "code": "ExcludedFromSync",
+      "msg": "ExcludedFromSync sample",
+      "current": null
+    }
+  }
+}

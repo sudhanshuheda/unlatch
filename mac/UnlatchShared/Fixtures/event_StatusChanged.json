@@ -1,0 +1,30 @@
+{
+  "domain": "devbox",
+  "status": {
+    "anchor": [
+      222,
+      173,
+      190,
+      239,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      7
+    ],
+    "cache_bytes": 5242880,
+    "entries": 130000,
+    "pending_uploads": 2,
+    "rtt_us": null,
+    "server": null,
+    "state": {
+      "Paused": {
+        "reason": "mass deletion"
+      }
+    }
+  },
+  "type": "StatusChanged"
+}

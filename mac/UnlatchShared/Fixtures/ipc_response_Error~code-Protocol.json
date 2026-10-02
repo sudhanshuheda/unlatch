@@ -1,0 +1,10 @@
+{
+  "call": 99,
+  "msg": {
+    "Error": {
+      "code": "Protocol",
+      "msg": "Protocol sample",
+      "current": null
+    }
+  }
+}

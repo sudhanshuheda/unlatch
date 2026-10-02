@@ -1,0 +1,10 @@
+{
+  "call": 99,
+  "msg": {
+    "Error": {
+      "code": "Io",
+      "msg": "Io sample",
+      "current": null
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "call": 99,
+  "msg": {
+    "Error": {
+      "code": "Permission",
+      "msg": "Permission sample",
+      "current": null
+    }
+  }
+}

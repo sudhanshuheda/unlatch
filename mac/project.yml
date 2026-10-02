@@ -1,0 +1,123 @@
+# XcodeGen spec for the macOS app. Generate with:  cd mac && xcodegen generate
+# Signing: mac/Signing.xcconfig (+ your mac/Signing.local.xcconfig). Build docs: docs/MACOS.md.
+name: Unlatch
+options:
+  deploymentTarget:
+    macOS: "13.0"
+  createIntermediateGroups: true
+  developmentLanguage: en
+  groupSortPosition: top
+configs:
+  Debug: debug
+  Release: release
+configFiles:
+  Debug: Project.xcconfig
+  Release: Project.xcconfig
+
+aggregateTargets:
+  # libunlatch.a (universal) must exist before the extension or the app link, so it is its own
+  # target that both depend on. `UNLATCH_SKIP_RUST=1` skips it when CI built it already.
+  RustLib:
+    buildScripts:
+      - name: Build Rust (libunlatch.a, unlatchd)
+        script: exec "${PROJECT_DIR}/scripts/build-rust.sh" --xcode
+        basedOnDependencyAnalysis: false
+
+targets:
+  Unlatch:
+    type: application
+    platform: macOS
+    sources:
+      - path: Unlatch
+        excludes:
+          - Info.plist
+          - "*.entitlements"
+      - path: UnlatchShared/Sources/UnlatchShared
+    settings:
+      base:
+        PRODUCT_NAME: Unlatch
+        PRODUCT_BUNDLE_IDENTIFIER: $(UNLATCH_BUNDLE_PREFIX).unlatch
+        INFOPLIST_FILE: Unlatch/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        CODE_SIGN_ENTITLEMENTS: Unlatch/Unlatch.entitlements
+        OTHER_LDFLAGS: $(inherited) $(UNLATCH_RUST_LDFLAGS)
+        ENABLE_PREVIEWS: NO
+        LD_RUNPATH_SEARCH_PATHS: $(inherited) @executable_path/../Frameworks
+    dependencies:
+      - target: RustLib
+      - target: UnlatchFileProvider
+        embed: true
+        codeSign: true
+      - target: unlatch-askpass
+        embed: true
+        codeSign: true
+        copy:
+          destination: executables
+    postBuildScripts:
+      # Before Xcode signs the bundle: unlatchd binaries + checksums into Resources/unlatchd, and
+      # the SMAppService LaunchAgent plist into Contents/Library/LaunchAgents.
+      - name: Stage unlatchd and LaunchAgent plist
+        script: |
+          set -e
+          "${PROJECT_DIR}/scripts/build-rust.sh" --stage-bundle "${TARGET_BUILD_DIR}/${WRAPPER_NAME}"
+          "${PROJECT_DIR}/scripts/gen-launchagent.sh"
+        basedOnDependencyAnalysis: false
+
+  UnlatchFileProvider:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: UnlatchFileProvider
+        excludes:
+          - Info.plist
+          - "*.entitlements"
+      - path: UnlatchShared/Sources/UnlatchShared
+        # App-only helpers (they spawn processes / touch ~/.ssh); keep the appex extension-safe.
+        excludes:
+          - ShellEnvironment.swift
+          - SSHConfig.swift
+          - LocalNetwork.swift
+    settings:
+      base:
+        PRODUCT_NAME: UnlatchFileProvider
+        PRODUCT_BUNDLE_IDENTIFIER: $(UNLATCH_BUNDLE_PREFIX).unlatch.fileprovider
+        INFOPLIST_FILE: UnlatchFileProvider/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        CODE_SIGN_ENTITLEMENTS: UnlatchFileProvider/UnlatchFileProvider.entitlements
+        OTHER_LDFLAGS: $(inherited) $(UNLATCH_RUST_LDFLAGS)
+        APPLICATION_EXTENSION_API_ONLY: YES
+        SKIP_INSTALL: YES
+        LD_RUNPATH_SEARCH_PATHS: $(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks
+    dependencies:
+      - target: RustLib
+
+  unlatch-askpass:
+    type: tool
+    platform: macOS
+    sources:
+      - path: UnlatchAskpass
+        excludes:
+          - Info.plist
+    settings:
+      base:
+        PRODUCT_NAME: unlatch-askpass
+        PRODUCT_BUNDLE_IDENTIFIER: $(UNLATCH_BUNDLE_PREFIX).unlatch.askpass
+        INFOPLIST_FILE: UnlatchAskpass/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        CREATE_INFOPLIST_SECTION_IN_BINARY: YES
+        SKIP_INSTALL: YES
+
+schemes:
+  Unlatch:
+    build:
+      # The embedded targets are listed explicitly (they would build anyway as dependencies) so
+      # that `xcodebuild -scheme Unlatch -showBuildSettings` reports their settings too; CI and
+      # release feed those to mac/scripts/check-bundle.py.
+      targets:
+        Unlatch: all
+        UnlatchFileProvider: all
+        unlatch-askpass: all
+    run:
+      config: Debug
+    archive:
+      config: Release

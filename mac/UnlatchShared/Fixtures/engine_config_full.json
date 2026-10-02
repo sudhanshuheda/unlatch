@@ -1,0 +1,49 @@
+{
+  "name": "devbox",
+  "transport": {
+    "ssh": {
+      "destination": "me@10.0.0.5",
+      "port": 2222,
+      "identity": "/Users/me/.ssh/id_ed25519",
+      "extra_args": [
+        "-o",
+        "ProxyJump=bastion"
+      ]
+    }
+  },
+  "remote_root": "~/code",
+  "state_dir": "/Users/me/Library/Group Containers/TEAMID.dev.unlatch.unlatch/domains/devbox",
+  "client_name": "Sam's MacBook",
+  "cache_dir": "/Users/me/Library/Group Containers/TEAMID.dev.unlatch.unlatch/cache/devbox",
+  "temp_dir": "/Users/me/Library/Group Containers/TEAMID.dev.unlatch.unlatch/tmp/devbox",
+  "unlatchd_command": "/opt/unlatch/unlatchd",
+  "remote_install_dir": "/var/tmp/unlatch-me",
+  "unlatchd_upload": [
+    {
+      "arch": "x86_64",
+      "path": "/Applications/Unlatch.app/Contents/Resources/unlatchd/unlatchd-x86_64",
+      "sha256_hex": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    }
+  ],
+  "cache_budget": 5368709120,
+  "prefetch": {
+    "max_file": 262144,
+    "per_container": 8388608,
+    "bytes_per_min": 67108864,
+    "burst": 16777216
+  },
+  "default_lazy_names": [
+    "node_modules",
+    ".git"
+  ],
+  "ssh_env": {
+    "PATH": "/opt/homebrew/bin:/usr/bin:/bin",
+    "SSH_AUTH_SOCK": "/Users/me/.1password/agent.sock"
+  },
+  "askpass": "/Applications/Unlatch.app/Contents/MacOS/unlatch-askpass",
+  "list_timeout_ms": 20000,
+  "expose_exec": false,
+  "mass_delete_frac": 0.25,
+  "mass_delete_abs": 500,
+  "mass_delete_min": 16
+}

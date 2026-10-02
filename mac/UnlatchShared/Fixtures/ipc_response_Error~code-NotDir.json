@@ -1,0 +1,10 @@
+{
+  "call": 99,
+  "msg": {
+    "Error": {
+      "code": "NotDir",
+      "msg": "NotDir sample",
+      "current": null
+    }
+  }
+}

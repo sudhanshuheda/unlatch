@@ -1,0 +1,4 @@
+module CUnlatch [system] {
+    header "shim.h"
+    export *
+}

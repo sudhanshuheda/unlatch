@@ -1,0 +1,215 @@
+# Publish the npm packages (`unlatch` + its three platform packages) for a release tag.
+#
+# Runs after release.yml has built, signed, notarized and uploaded the Mac app for the tag
+# (on its success), or by hand for an existing tag (Actions → npm release → Run workflow).
+# Nothing here runs for pull requests.
+#
+# Repository configuration (Settings → Secrets and variables → Actions):
+#   secrets:
+#     NPM_TOKEN   an npm automation (or granular publish) token that may publish `unlatch` and
+#                 the unscoped platform packages `unlatch-<platform>` (no npm org needed).
+#   Provenance (`npm publish --provenance`) uses this workflow's OIDC token (id-token: write);
+#   it needs a public repository.
+#
+# What is published, all with the tag's version:
+#   unlatch-linux-x64         unlatchd (x86_64, from the release assets) + unlatch CLI (musl, built here)
+#   unlatch-linux-arm64       unlatchd (aarch64, from the release assets) + unlatch CLI (musl, built here)
+#   unlatch-darwin-universal  the notarized, stapled app (zipped from the release DMG) + universal unlatch CLI
+#   unlatch                   the zero-dependency installer (npm/unlatch), optionalDependencies pinned
+#
+# Publishing (npm/scripts/publish.mjs) skips versions that are already live, so a failed run can
+# simply be re-run; the installer is published last, and only when its platform packages exist.
+#
+# unlatchd is NOT rebuilt: the linux packages carry the exact files the Mac app bundles
+# (Resources/unlatchd), so a VM prepared with `npx unlatch share` already has the daemon the Mac
+# would upload (same sha256 → same file name → no upload). The workflow checks that.
+name: npm release
+
+on:
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to publish (e.g. v0.2.0)"
+        required: true
+
+permissions:
+  contents: write   # read the (draft) release's assets
+  id-token: write   # npm provenance
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  meta:
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_branch, 'v'))
+    runs-on: ubuntu-24.04
+    outputs:
+      tag: ${{ steps.t.outputs.tag }}
+      version: ${{ steps.t.outputs.version }}
+      npm_tag: ${{ steps.t.outputs.npm_tag }}
+    steps:
+      - id: t
+        env:
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+          RUN_TAG: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          TAG="${INPUT_TAG:-$RUN_TAG}"
+          case "$TAG" in v[0-9]*) ;; *) echo "::error::not a release tag: $TAG"; exit 1 ;; esac
+          VERSION="${TAG#v}"
+          case "$VERSION" in *-*) NPM_TAG=next ;; *) NPM_TAG=latest ;; esac
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "npm_tag=$NPM_TAG" >> "$GITHUB_OUTPUT"
+
+  linux:
+    needs: meta
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.meta.outputs.tag }}
+      - name: Tag version must equal the Cargo workspace version (it names the daemon on the VM)
+        run: |
+          CARGO=$(sed -n '/^\[workspace.package\]/,/^\[/s/^version *= *"\(.*\)"/\1/p' Cargo.toml)
+          [ "$CARGO" = "${{ needs.meta.outputs.version }}" ] || { echo "::error::tag ${{ needs.meta.outputs.version }} != Cargo.toml $CARGO"; exit 1; }
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-musl, aarch64-unknown-linux-musl
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.13.0
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-zigbuild
+      - name: Build the unlatch CLI (static musl)
+        run: |
+          for t in x86_64-unknown-linux-musl aarch64-unknown-linux-musl; do
+            cargo zigbuild --release -p unlatch-cli --target "$t"
+          done
+          mkdir -p out
+          cp target/x86_64-unknown-linux-musl/release/unlatch out/unlatch-x86_64
+          cp target/aarch64-unknown-linux-musl/release/unlatch out/unlatch-aarch64
+          # Debug info makes the CLI ~5x larger; stripping the CLI is fine (never unlatchd, see header).
+          llvm-strip out/unlatch-x86_64 out/unlatch-aarch64 2>/dev/null || strip out/unlatch-x86_64 || true
+          file out/*
+      - name: unlatchd from the release (byte-identical to the app's)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "${{ needs.meta.outputs.tag }}" --pattern 'unlatchd-*' --dir out
+          ls -la out
+          file out/unlatchd-x86_64 out/unlatchd-aarch64 | tee /dev/stderr | grep -Eq 'statically linked|static-pie linked'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-bins
+          path: out/
+          if-no-files-found: error
+
+  macos:
+    needs: meta
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.meta.outputs.tag }}
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin, x86_64-apple-darwin
+      - name: Universal unlatch CLI
+        run: |
+          cargo build --release -p unlatch-cli --target aarch64-apple-darwin
+          cargo build --release -p unlatch-cli --target x86_64-apple-darwin
+          mkdir -p out
+          lipo -create -output out/unlatch \
+            target/aarch64-apple-darwin/release/unlatch target/x86_64-apple-darwin/release/unlatch
+          strip -x out/unlatch && codesign --force -s - out/unlatch
+          lipo -info out/unlatch
+      - name: Zip the notarized app from the release DMG
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.meta.outputs.version }}
+        run: |
+          gh release download "${{ needs.meta.outputs.tag }}" --pattern '*.dmg' --dir dmg
+          DMG=$(ls dmg/*.dmg | head -n 1)
+          MNT=$(mktemp -d)
+          hdiutil attach -nobrowse -readonly -mountpoint "$MNT" "$DMG"
+          APP=$(ls -d "$MNT"/*.app | head -n 1)
+          spctl -a -vv -t exec "$APP"
+          xcrun stapler validate "$APP"
+          NAME=$(basename "$APP")
+          PLIST="$APP/Contents/Info.plist"
+          EXE=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$PLIST")
+          BID=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$PLIST")
+          APPV=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$PLIST")
+          [ "$APPV" = "$VERSION" ] || { echo "::error::app version $APPV != $VERSION"; exit 1; }
+          # The linux packages must carry the daemons this app uploads.
+          mkdir -p out/app-unlatchd
+          cp "$APP"/Contents/Resources/unlatchd/unlatchd-*.sha256 out/app-unlatchd/
+          ditto -c -k --keepParent "$APP" "out/$NAME.zip"
+          hdiutil detach "$MNT"
+          printf '{"bundle":"%s","executable":"%s","bundle_id":"%s","version":"%s"}\n' "$NAME" "$EXE" "$BID" "$APPV" > out/app.json
+          cat out/app.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: darwin
+          path: out/
+          if-no-files-found: error
+
+  publish:
+    needs: [meta, linux, macos]
+    runs-on: ubuntu-24.04
+    environment: npm
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.meta.outputs.tag }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - uses: actions/download-artifact@v4
+        with:
+          name: linux-bins
+          path: linux
+      - uses: actions/download-artifact@v4
+        with:
+          name: darwin
+          path: darwin
+      - name: Installer unit tests
+        run: cd npm/unlatch && npm test
+      - name: unlatchd in the npm packages == unlatchd in the app
+        run: |
+          for a in x86_64 aarch64; do
+            want=$(awk '{print $1}' darwin/app-unlatchd/unlatchd-$a.sha256)
+            have=$(sha256sum linux/unlatchd-$a | awk '{print $1}')
+            [ "$want" = "$have" ] || { echo "::error::unlatchd-$a differs from the app's ($have != $want)"; exit 1; }
+          done
+      - name: Assemble the four packages
+        env:
+          V: ${{ needs.meta.outputs.version }}
+        run: |
+          chmod +x linux/*
+          node npm/scripts/assemble.mjs platform --key linux-x64 --version "$V" --out dist/linux-x64 \
+            --unlatchd linux/unlatchd-x86_64 --unlatch linux/unlatch-x86_64
+          node npm/scripts/assemble.mjs platform --key linux-arm64 --version "$V" --out dist/linux-arm64 \
+            --unlatchd linux/unlatchd-aarch64 --unlatch linux/unlatch-aarch64
+          APP=$(cat darwin/app.json)
+          field() { node -e 'console.log(JSON.parse(process.argv[1])[process.argv[2]])' "$APP" "$1"; }
+          node npm/scripts/assemble.mjs platform --key darwin-universal --version "$V" --out dist/darwin-universal \
+            --app-zip "darwin/$(field bundle).zip" --app-bundle "$(field bundle)" --app-executable "$(field executable)" \
+            --bundle-id "$(field bundle_id)" --app-version "$(field version)" --unlatch darwin/unlatch
+          node npm/scripts/assemble.mjs main --version "$V" --out dist/unlatch
+          for d in dist/*; do (cd "$d" && npm pack --dry-run 2>&1 | tail -n 4); done
+      # Idempotent: versions already on the registry are skipped, so "Re-run failed jobs" (or a
+      # workflow_dispatch for the same tag) after a partial failure publishes only what is
+      # missing. Platform packages always go first; the installer only once all of them are live.
+      - name: Publish (platform packages first, then the installer)
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TAG: ${{ needs.meta.outputs.npm_tag }}
+        run: |
+          [ -n "$NODE_AUTH_TOKEN" ] || { echo "::error::secrets.NPM_TOKEN is not set (see the header of npm-release.yml)"; exit 1; }
+          node npm/scripts/publish.mjs --tag "$NPM_TAG" --provenance dist/linux-x64 dist/linux-arm64 dist/darwin-universal dist/unlatch

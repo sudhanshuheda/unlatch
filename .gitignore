@@ -1,0 +1,11 @@
+target/
+node_modules/
+*.tgz
+__pycache__/
+.idea/
+.vscode/
+site/dist/.vercel/
+*.xcodeproj/
+mac/build/
+bench/results/*.tmp
+.DS_Store

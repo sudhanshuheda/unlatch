@@ -1,0 +1,160 @@
+# Tag builds: Developer ID signing, notarization, stapling and Gatekeeper assessment.
+#
+# Repository configuration (Settings → Secrets and variables → Actions):
+#   variables:
+#     UNLATCH_TEAM_ID          your 10-character Apple Developer Team ID
+#     UNLATCH_BUNDLE_PREFIX    reverse-DNS prefix you own (forks must change it), e.g. com.example
+#   secrets:
+#     MACOS_CERT_P12_BASE64  base64 of a .p12 with the "Developer ID Application" certificate + key
+#     MACOS_CERT_PASSWORD    password of that .p12
+#     NOTARY_KEY_P8_BASE64   base64 of an App Store Connect API key (.p8) with Developer access
+#     NOTARY_KEY_ID          that key's id
+#     NOTARY_ISSUER_ID       the App Store Connect issuer id
+# Nothing here runs for pull requests; CI (ci.yml) needs none of these.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  unlatchd:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-musl, aarch64-unknown-linux-musl
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.13.0
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-zigbuild
+      - run: mac/scripts/build-rust.sh --unlatchd-only
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unlatchd-musl
+          path: mac/build/unlatchd/
+          if-no-files-found: error
+
+  macos:
+    runs-on: macos-15
+    needs: unlatchd
+    env:
+      UNLATCH_TEAM_ID: ${{ vars.UNLATCH_TEAM_ID }}
+      UNLATCH_BUNDLE_PREFIX: ${{ vars.UNLATCH_BUNDLE_PREFIX }}
+      DERIVED: mac/build/DerivedData
+      APP: mac/build/DerivedData/Build/Products/Release/Unlatch.app
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check release configuration
+        env:
+          P12: ${{ secrets.MACOS_CERT_P12_BASE64 }}
+          NOTARY: ${{ secrets.NOTARY_KEY_P8_BASE64 }}
+        run: |
+          missing=""
+          [ -n "$UNLATCH_TEAM_ID" ] || missing="$missing vars.UNLATCH_TEAM_ID"
+          [ -n "$UNLATCH_BUNDLE_PREFIX" ] || missing="$missing vars.UNLATCH_BUNDLE_PREFIX"
+          [ -n "$P12" ] || missing="$missing secrets.MACOS_CERT_P12_BASE64"
+          [ -n "$NOTARY" ] || missing="$missing secrets.NOTARY_KEY_P8_BASE64"
+          if [ -n "$missing" ]; then
+            echo "::error::release signing is not configured; missing:$missing (see the header of release.yml)"
+            exit 1
+          fi
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin, x86_64-apple-darwin
+      - uses: actions/download-artifact@v4
+        with:
+          name: unlatchd-musl
+          path: mac/build/unlatchd-prebuilt
+      - name: Import the Developer ID certificate into a temporary keychain
+        env:
+          P12: ${{ secrets.MACOS_CERT_P12_BASE64 }}
+          P12_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
+        run: |
+          KEYCHAIN="$RUNNER_TEMP/unlatch-signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(uuidgen)"
+          echo "$P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security import "$RUNNER_TEMP/cert.p12" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" >/dev/null
+          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
+          rm -f "$RUNNER_TEMP/cert.p12"
+          echo "KEYCHAIN=$KEYCHAIN" >> "$GITHUB_ENV"
+      - name: Build Rust
+        env:
+          UNLATCHD_PREBUILT_DIR: mac/build/unlatchd-prebuilt
+          UNLATCH_REQUIRE_UNLATCHD: "1"
+        run: |
+          chmod +x mac/build/unlatchd-prebuilt/unlatchd-*
+          mac/scripts/build-rust.sh --ffi-only
+          mac/scripts/build-rust.sh --unlatchd-only
+      - name: Build and sign (Developer ID, hardened runtime)
+        run: |
+          set -o pipefail
+          brew install xcodegen
+          (cd mac && xcodegen generate)
+          VERSION="${GITHUB_REF_NAME#v}"
+          xcodebuild -project mac/Unlatch.xcodeproj -scheme Unlatch -configuration Release \
+            -derivedDataPath "$DERIVED" -destination 'generic/platform=macOS' \
+            UNLATCH_TEAM_ID="$UNLATCH_TEAM_ID" UNLATCH_BUNDLE_PREFIX="$UNLATCH_BUNDLE_PREFIX" \
+            MARKETING_VERSION="$VERSION" CURRENT_PROJECT_VERSION="$GITHUB_RUN_NUMBER" \
+            CODE_SIGN_IDENTITY="Developer ID Application" OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN --timestamp" \
+            UNLATCH_SKIP_RUST=1 UNLATCH_REQUIRE_UNLATCHD=1 build
+          xcodebuild -project mac/Unlatch.xcodeproj -scheme Unlatch -configuration Release \
+            UNLATCH_TEAM_ID="$UNLATCH_TEAM_ID" UNLATCH_BUNDLE_PREFIX="$UNLATCH_BUNDLE_PREFIX" \
+            -showBuildSettings -json > mac/build/settings.json
+      - name: Verify signature and entitlements
+        run: |
+          codesign --verify --strict --deep --verbose=2 "$APP"
+          python3 mac/scripts/check-bundle.py --settings mac/build/settings.json --app "$APP" --require-unlatchd --signed
+      - name: Notarize and staple the app
+        env:
+          NOTARY_KEY: ${{ secrets.NOTARY_KEY_P8_BASE64 }}
+          NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
+        run: |
+          echo "$NOTARY_KEY" | base64 --decode > "$RUNNER_TEMP/notary.p8"
+          echo "NOTARY_ARGS=--key $RUNNER_TEMP/notary.p8 --key-id $NOTARY_KEY_ID --issuer $NOTARY_ISSUER_ID" >> "$GITHUB_ENV"
+          ditto -c -k --keepParent "$APP" "$RUNNER_TEMP/Unlatch.zip"
+          xcrun notarytool submit "$RUNNER_TEMP/Unlatch.zip" --key "$RUNNER_TEMP/notary.p8" \
+            --key-id "$NOTARY_KEY_ID" --issuer "$NOTARY_ISSUER_ID" --wait --timeout 30m
+          xcrun stapler staple "$APP"
+          spctl -a -vv -t exec "$APP"
+      - name: Build, sign, notarize and staple the DMG
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          DMG="mac/build/Unlatch-$VERSION.dmg"
+          mkdir -p "$RUNNER_TEMP/dmg"
+          cp -R "$APP" "$RUNNER_TEMP/dmg/"
+          ln -s /Applications "$RUNNER_TEMP/dmg/Applications"
+          hdiutil create -volname "Unlatch $VERSION" -srcfolder "$RUNNER_TEMP/dmg" -ov -format UDZO "$DMG"
+          codesign --sign "Developer ID Application" --keychain "$KEYCHAIN" --timestamp "$DMG"
+          xcrun notarytool submit "$DMG" $NOTARY_ARGS --wait --timeout 30m
+          xcrun stapler staple "$DMG"
+          spctl -a -vv -t open --context context:primary-signature "$DMG"
+          shasum -a 256 "$DMG" > "$DMG.sha256"
+          echo "DMG=$DMG" >> "$GITHUB_ENV"
+      - name: Publish the release assets
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --draft --title "Unlatch $GITHUB_REF_NAME" --notes ""
+          gh release upload "$GITHUB_REF_NAME" "$DMG" "$DMG.sha256" mac/build/unlatchd-prebuilt/unlatchd-* --clobber
+      - name: Clean up the keychain
+        if: always()
+        run: |
+          [ -n "${KEYCHAIN:-}" ] && security delete-keychain "$KEYCHAIN" || true
+          rm -f "$RUNNER_TEMP/notary.p8"

@@ -1,0 +1,27 @@
+{
+  "state": {
+    "NeedsUser": {
+      "reason": "Tailscale SSH needs a login",
+      "url": "https://login.tailscale.com/a/abc"
+    }
+  },
+  "entries": 130000,
+  "anchor": [
+    222,
+    173,
+    190,
+    239,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    7
+  ],
+  "rtt_us": null,
+  "cache_bytes": 5242880,
+  "pending_uploads": 2,
+  "server": null
+}

@@ -1,0 +1,79 @@
+{
+  "call": 6,
+  "msg": {
+    "Changes": {
+      "updated": [
+        {
+          "entry": {
+            "id": 12,
+            "parent": 1,
+            "name": "notes.md",
+            "kind": "File",
+            "size": 1234,
+            "mtime_ns": 1727654400123456789,
+            "mode": 420,
+            "version": {
+              "content": 41,
+              "meta": 42
+            },
+            "symlink_target": null,
+            "lazy": false,
+            "seq": 42,
+            "access": 3
+          },
+          "display_name": "notes.md",
+          "caps": 47,
+          "local": {
+            "tag_data": [
+              98,
+              112,
+              108,
+              105,
+              115,
+              116
+            ],
+            "last_used_ns": 1727654400000000000,
+            "favorite_rank": 3,
+            "creation_ns": -5000000000,
+            "xattrs": [
+              [
+                "user.note",
+                [
+                  104,
+                  105
+                ]
+              ],
+              [
+                "com.example.empty",
+                []
+              ]
+            ],
+            "hidden": true,
+            "type_creator": [
+              1413830740,
+              1953790068
+            ]
+          },
+          "user_exec": true,
+          "symlink_blocked": false
+        }
+      ],
+      "removed": [
+        20,
+        21
+      ],
+      "anchor": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        10
+      ],
+      "more": true
+    }
+  }
+}

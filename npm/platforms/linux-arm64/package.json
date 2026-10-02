@@ -1,0 +1,28 @@
+{
+  "name": "unlatch-linux-arm64",
+  "version": "0.1.0-alpha.1",
+  "description": "Unlatch platform package: static musl unlatchd daemon and unlatch CLI for Linux aarch64. Installed automatically by `unlatch`; not meant to be used directly.",
+  "homepage": "https://github.com/sudhanshuheda/unlatch#readme",
+  "bugs": {
+    "url": "https://github.com/sudhanshuheda/unlatch/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sudhanshuheda/unlatch.git",
+    "directory": "npm/platforms/linux-arm64"
+  },
+  "license": "MIT OR Apache-2.0",
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "files": [
+    "bin/",
+    "manifest.json",
+    "LICENSE-MIT",
+    "LICENSE-APACHE"
+  ],
+  "preferUnplugged": true
+}

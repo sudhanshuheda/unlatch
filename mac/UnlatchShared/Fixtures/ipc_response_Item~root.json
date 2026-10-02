@@ -1,0 +1,37 @@
+{
+  "call": 2,
+  "msg": {
+    "Item": {
+      "entry": {
+        "id": 1,
+        "parent": 1,
+        "name": "code",
+        "kind": "Dir",
+        "size": 0,
+        "mtime_ns": 1727654400123456789,
+        "mode": 493,
+        "version": {
+          "content": 1,
+          "meta": 1
+        },
+        "symlink_target": null,
+        "lazy": false,
+        "seq": 42,
+        "access": 7
+      },
+      "display_name": "code",
+      "caps": 3,
+      "local": {
+        "tag_data": null,
+        "last_used_ns": null,
+        "favorite_rank": null,
+        "creation_ns": null,
+        "xattrs": [],
+        "hidden": false,
+        "type_creator": null
+      },
+      "user_exec": false,
+      "symlink_blocked": false
+    }
+  }
+}

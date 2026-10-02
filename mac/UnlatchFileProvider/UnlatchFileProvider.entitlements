@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  The File Provider extension: sandboxed, no network (it only talks XPC to the agent, whose
+  MachService name starts with the app group — which is what lets a sandboxed process look it up).
+-->
+<plist version="1.0">
+<dict>
+	<key>com.apple.security.app-sandbox</key>
+	<true/>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>$(UNLATCH_APP_GROUP)</string>
+	</array>
+</dict>
+</plist>

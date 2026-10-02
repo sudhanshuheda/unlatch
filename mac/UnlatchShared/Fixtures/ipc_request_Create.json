@@ -1,0 +1,49 @@
+{
+  "call": 10,
+  "msg": {
+    "Create": {
+      "template_id": "NSFileProviderItemTemplate-1F2E",
+      "parent": 1,
+      "name": "notes.md",
+      "kind": "File",
+      "has_content": true,
+      "symlink_target": null,
+      "mtime_ns": 1727654400000000000,
+      "user_exec": false,
+      "changed_fields": 147,
+      "local": {
+        "tag_data": [
+          98,
+          112,
+          108,
+          105,
+          115,
+          116
+        ],
+        "last_used_ns": 1727654400000000000,
+        "favorite_rank": 3,
+        "creation_ns": -5000000000,
+        "xattrs": [
+          [
+            "user.note",
+            [
+              104,
+              105
+            ]
+          ],
+          [
+            "com.example.empty",
+            []
+          ]
+        ],
+        "hidden": true,
+        "type_creator": [
+          1413830740,
+          1953790068
+        ]
+      },
+      "may_already_exist": true,
+      "deletion_conflicted": false
+    }
+  }
+}

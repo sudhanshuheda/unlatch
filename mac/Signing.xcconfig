@@ -1,0 +1,31 @@
+// Unlatch signing identity. The defaults are placeholders: they build, but a build signed this
+// way cannot load the File Provider extension (see docs/MACOS.md, "Why ad-hoc builds cannot
+// run the Finder integration").
+//
+// Set your own in mac/Signing.local.xcconfig (git-ignored):
+//     UNLATCH_TEAM_ID = ABCDE12345
+//     UNLATCH_BUNDLE_PREFIX = com.example
+// or on the command line: xcodebuild UNLATCH_TEAM_ID=ABCDE12345 UNLATCH_BUNDLE_PREFIX=com.example …
+// Forks must change UNLATCH_BUNDLE_PREFIX: two installs with the same bundle ids signed by
+// different teams confuse pluginkit and fileproviderd (review D20).
+
+UNLATCH_TEAM_ID = XXXXXXXXXX
+UNLATCH_BUNDLE_PREFIX = dev.unlatch.example
+
+#include? "Signing.local.xcconfig"
+
+// $(TeamIdentifierPrefix)$(UNLATCH_BUNDLE_PREFIX).unlatch, spelled with UNLATCH_TEAM_ID so that it is
+// the same in unsigned CI builds. Must be team-prefixed: a "group." id needs a provisioning
+// profile, and macOS 15+ prompts (27+: denies) cross-app container access otherwise.
+UNLATCH_APP_GROUP = $(UNLATCH_TEAM_ID).$(UNLATCH_BUNDLE_PREFIX).unlatch
+
+DEVELOPMENT_TEAM = $(UNLATCH_TEAM_ID)
+// Manual signing without a provisioning profile: a profile would inject
+// com.apple.application-identifier into the agent's entitlements, and AMFI then refuses to
+// launch it (MQ-066). Nothing Unlatch uses is a restricted entitlement.
+CODE_SIGN_STYLE = Manual
+PROVISIONING_PROFILE_SPECIFIER =
+CODE_SIGN_IDENTITY = Apple Development
+CODE_SIGN_IDENTITY[config=Release] = Developer ID Application
+ENABLE_HARDENED_RUNTIME = YES
+OTHER_CODE_SIGN_FLAGS[config=Release] = --timestamp

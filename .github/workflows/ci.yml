@@ -1,0 +1,304 @@
+# CI: Rust on Linux (fmt, clippy, tests, quick verify), static unlatchd for the VM (musl), and the
+# macOS app (universal libunlatch.a, Swift fixture tests, unsigned Xcode build, entitlement
+# assertions, ad-hoc signature verification). Tag builds are signed in release.yml.
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+  # `gh workflow run ci.yml --ref <branch> -f only=macos` runs just musl + macOS (the macOS minutes
+  # are the scarce ones); `only=linux` just the two Linux jobs. Different `only` values do not
+  # cancel each other.
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "Jobs to run"
+        type: choice
+        options: [all, macos, linux]
+        default: all
+
+concurrency:
+  group: ci-${{ github.ref }}-${{ inputs.only || 'all' }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+  XCODEGEN_VERSION: "2.44.1"
+
+jobs:
+  linux:
+    name: Linux (fmt, clippy, test, verify)
+    if: inputs.only != 'macos'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Install FUSE and traffic-shaping tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends fuse3 iproute2 sshfs
+      - name: Non-interactive ssh localhost (transport end-to-end tests)
+        run: |
+          # crates/unlatch-core/tests/transport_ssh.rs runs the real bootstrap over `ssh localhost`.
+          sudo systemctl start ssh 2>/dev/null || sudo service ssh start
+          chmod go-w "$HOME"
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          test -e ~/.ssh/id_ed25519 || ssh-keygen -q -t ed25519 -N '' -f ~/.ssh/id_ed25519
+          cat ~/.ssh/id_ed25519.pub >> ~/.ssh/authorized_keys
+          chmod 600 ~/.ssh/authorized_keys
+          for _ in 1 2 3 4 5; do
+            ssh-keyscan -t ed25519,ecdsa,rsa localhost 127.0.0.1 ::1 >> ~/.ssh/known_hosts 2>/dev/null && break
+            sleep 1
+          done
+          ssh -o BatchMode=yes localhost true
+          echo "ssh localhost OK"
+      - name: rustfmt
+        run: cargo fmt --all -- --check
+      - name: clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+      - name: tests
+        run: cargo test --workspace
+      - name: Bundle-check script tests
+        run: python3 mac/scripts/test_check_bundle.py
+      - name: Allow unprivileged network namespaces (bench shaping)
+        run: |
+          # Ubuntu 24.04 restricts unprivileged user namespaces through AppArmor.
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+          if unshare -rn true 2>/dev/null; then
+            echo "UNLATCH_NETNS=1" >> "$GITHUB_ENV"
+          else
+            echo "UNLATCH_NETNS=0" >> "$GITHUB_ENV"
+          fi
+      - name: scripts/verify.sh --quick (release build, fpsim, fuzz, bench)
+        env:
+          # Reuse (and let rust-cache keep) the release build instead of verify's own target/verify.
+          CARGO_TARGET_DIR: target
+          # Shared runners are slower than the dev box the quick limits were sized on.
+          VERIFY_LIMIT_SCALE: "3"
+        run: |
+          # fmt, clippy and the tests ran above; verify adds the rest of its loop. CI gates
+          # correctness only: bench numbers from a shared runner are not comparable with
+          # bench/baseline.json (measured on the dev box), so bench/compare run locally.
+          skip=fmt,clippy,test,bench,compare
+          if [ "$UNLATCH_NETNS" != 1 ]; then
+            export UNLATCH_NO_NETNS=1
+          fi
+          scripts/verify.sh --quick --skip "$skip"
+      - name: Upload verify results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-results
+          path: |
+            target/bench/latest.json
+            target/bench/SCORECARD.md
+            target/bench/logs/
+          if-no-files-found: ignore
+
+  node:
+    name: npm installer and site (node --test)
+    if: inputs.only != 'macos'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Site and skill are rebuilt from their templates
+        run: bash site/build.sh && git diff --exit-code -- site npm/unlatch/skill
+      - name: Installer tests
+        working-directory: npm/unlatch
+        run: npm test
+
+  swift-linux:
+    name: Swift protocol mirrors (Linux, fast pre-check)
+    if: inputs.only != 'macos'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: swift-linux
+      - uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: "6.1"
+      - name: Host libunlatch.a
+        run: mac/scripts/build-rust.sh --ffi-only --debug
+      - name: Swift fixture and helper tests (macOS-only files excluded)
+        run: swift test --package-path mac/UnlatchShared
+
+  musl:
+    name: unlatchd (static, linux-musl x86_64 + aarch64)
+    if: inputs.only != 'linux'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-musl, aarch64-unknown-linux-musl
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: musl
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.13.0
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-zigbuild
+      - name: Build and stage unlatchd
+        run: mac/scripts/build-rust.sh --unlatchd-only
+      - name: Check the binaries are static and run
+        run: |
+          file mac/build/unlatchd/unlatchd-x86_64 | tee /dev/stderr | grep -Eq 'statically linked|static-pie linked'
+          file mac/build/unlatchd/unlatchd-aarch64 | tee /dev/stderr | grep -q 'ARM aarch64'
+          mac/build/unlatchd/unlatchd-x86_64 --version
+          (cd mac/build/unlatchd && sha256sum -c unlatchd-x86_64.sha256 unlatchd-aarch64.sha256)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unlatchd-musl
+          path: mac/build/unlatchd/
+          if-no-files-found: error
+
+  macos:
+    name: macOS app (libunlatch, Swift tests, Xcode build, entitlements)
+    runs-on: macos-15
+    needs: musl
+    timeout-minutes: 45
+    env:
+      DERIVED: mac/build/DerivedData
+    # Every stage after libunlatch runs even when an earlier one failed (continue-on-error + the
+    # Verdict step), so one run reports every Swift / Xcode / bundle problem at once.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin, x86_64-apple-darwin
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: macos
+          cache-on-failure: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: unlatchd-musl
+          path: mac/build/unlatchd-prebuilt
+      - name: Build universal libunlatch.a and stage unlatchd
+        env:
+          UNLATCHD_PREBUILT_DIR: mac/build/unlatchd-prebuilt
+          UNLATCH_REQUIRE_UNLATCHD: "1"
+        run: |
+          chmod +x mac/build/unlatchd-prebuilt/unlatchd-*
+          mac/scripts/build-rust.sh --ffi-only
+          mac/scripts/build-rust.sh --unlatchd-only
+          lipo -archs mac/build/rust/libunlatch.a
+          cat mac/build/rust/native-libs.xcconfig || true
+      - name: Swift unit tests (decode the Rust-generated protocol fixtures)
+        id: swifttest
+        continue-on-error: true
+        run: swift test --package-path mac/UnlatchShared
+      - name: Cache XcodeGen
+        id: xcodegen-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.xcodegen
+          key: xcodegen-${{ env.XCODEGEN_VERSION }}-${{ runner.os }}-${{ runner.arch }}
+      - name: Install XcodeGen
+        if: steps.xcodegen-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/.xcodegen
+          curl -fsSL --retry 5 -o "$RUNNER_TEMP/xcodegen.zip" \
+            "https://github.com/yonaskolb/XcodeGen/releases/download/${XCODEGEN_VERSION}/xcodegen.zip"
+          unzip -q "$RUNNER_TEMP/xcodegen.zip" -d ~/.xcodegen
+      - name: Generate the Xcode project
+        id: xcodegen
+        continue-on-error: true
+        run: |
+          xg="$(find ~/.xcodegen -type f -name xcodegen -perm -u+x | head -1)"
+          test -n "$xg"
+          "$xg" --version
+          cd mac && "$xg" generate
+      - name: Build Unlatch.app (unsigned)
+        id: xcodebuild
+        if: steps.xcodegen.outcome == 'success'
+        continue-on-error: true
+        run: |
+          mkdir -p mac/build
+          status=0
+          xcodebuild -project mac/Unlatch.xcodeproj -scheme Unlatch -configuration Debug \
+            -derivedDataPath "$DERIVED" -destination 'generic/platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO UNLATCH_SKIP_RUST=1 UNLATCH_REQUIRE_UNLATCHD=1 \
+            build > mac/build/xcodebuild.log 2>&1 || status=$?
+          echo "---- errors and warnings (deduplicated) ----"
+          grep -E "(error|warning): " mac/build/xcodebuild.log | sed "s|$PWD/||" | sort -u | head -300 || true
+          echo "---- tail ----"
+          tail -30 mac/build/xcodebuild.log
+          # An @objc optional-requirement witness whose signature drifted from the SDK compiles
+          # with only a warning and is then never called by the system.
+          if grep -n "nearly matches optional requirement" mac/build/xcodebuild.log; then
+            echo "::error::a File Provider method signature no longer matches the SDK"
+            status=1
+          fi
+          exit $status
+      - name: Build settings
+        id: settings
+        if: steps.xcodebuild.outcome == 'success'
+        continue-on-error: true
+        run: |
+          xcodebuild -project mac/Unlatch.xcodeproj -scheme Unlatch -configuration Debug \
+            -showBuildSettings -json > mac/build/settings.json
+      - name: Assert entitlements, app group and Info.plists agree
+        id: checkbundle
+        if: steps.settings.outcome == 'success'
+        continue-on-error: true
+        run: |
+          python3 mac/scripts/check-bundle.py --settings mac/build/settings.json \
+            --app "$DERIVED/Build/Products/Debug/Unlatch.app" --require-unlatchd
+      - name: Ad-hoc sign and codesign --verify --strict
+        id: adhoc
+        if: steps.settings.outcome == 'success'
+        continue-on-error: true
+        run: |
+          mac/scripts/adhoc-sign.sh "$DERIVED/Build/Products/Debug/Unlatch.app" mac/build/settings.json --require-unlatchd
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-build-logs
+          path: |
+            mac/build/xcodebuild.log
+            mac/build/settings.json
+            mac/build/rust/native-libs.xcconfig
+            mac/build/rust/native-static-libs.log
+          if-no-files-found: ignore
+      - name: Upload the unsigned app
+        if: steps.xcodebuild.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Unlatch-unsigned
+          path: ${{ env.DERIVED }}/Build/Products/Debug/Unlatch.app
+      - name: Verdict
+        if: always()
+        env:
+          SWIFTTEST: ${{ steps.swifttest.outcome }}
+          XCODEGEN: ${{ steps.xcodegen.outcome }}
+          XCODEBUILD: ${{ steps.xcodebuild.outcome }}
+          SETTINGS: ${{ steps.settings.outcome }}
+          CHECKBUNDLE: ${{ steps.checkbundle.outcome }}
+          ADHOC: ${{ steps.adhoc.outcome }}
+        run: |
+          echo "swift test: $SWIFTTEST | xcodegen: $XCODEGEN | xcodebuild: $XCODEBUILD | build settings: $SETTINGS | check-bundle: $CHECKBUNDLE | ad-hoc sign: $ADHOC"
+          for o in "$SWIFTTEST" "$XCODEGEN" "$XCODEBUILD" "$SETTINGS" "$CHECKBUNDLE" "$ADHOC"; do
+            [ "$o" = success ] || exit 1
+          done

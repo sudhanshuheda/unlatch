@@ -1,0 +1,24 @@
+[package]
+name = "unlatch-core"
+description = "Unlatch client engine: replica, cache, sync, File Provider-shaped API"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+unlatch-proto.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+rand.workspace = true
+rusqlite = { version = "0.32", features = ["bundled"] }
+blake3 = "1"
+unicode-normalization = "0.1"
+caseless = "0.2"
+libc = "0.2"
+postcard.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

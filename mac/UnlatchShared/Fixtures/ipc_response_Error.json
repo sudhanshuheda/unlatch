@@ -1,0 +1,41 @@
+{
+  "call": 15,
+  "msg": {
+    "Error": {
+      "code": "DeletionRejected",
+      "msg": "changed on the VM",
+      "current": {
+        "entry": {
+          "id": 12,
+          "parent": 1,
+          "name": "notes.md",
+          "kind": "File",
+          "size": 1234,
+          "mtime_ns": 1727654400123456789,
+          "mode": 420,
+          "version": {
+            "content": 41,
+            "meta": 42
+          },
+          "symlink_target": null,
+          "lazy": false,
+          "seq": 42,
+          "access": 3
+        },
+        "display_name": "notes.md",
+        "caps": 47,
+        "local": {
+          "tag_data": null,
+          "last_used_ns": null,
+          "favorite_rank": null,
+          "creation_ns": null,
+          "xattrs": [],
+          "hidden": false,
+          "type_creator": null
+        },
+        "user_exec": false,
+        "symlink_blocked": false
+      }
+    }
+  }
+}

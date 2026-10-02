@@ -1,0 +1,95 @@
+{
+  "call": 13,
+  "msg": {
+    "Done": {
+      "item": {
+        "entry": {
+          "id": 12,
+          "parent": 1,
+          "name": "notes.md",
+          "kind": "File",
+          "size": 1234,
+          "mtime_ns": 1727654400123456789,
+          "mode": 420,
+          "version": {
+            "content": 41,
+            "meta": 42
+          },
+          "symlink_target": null,
+          "lazy": false,
+          "seq": 42,
+          "access": 3
+        },
+        "display_name": "notes.md",
+        "caps": 47,
+        "local": {
+          "tag_data": [
+            98,
+            112,
+            108,
+            105,
+            115,
+            116
+          ],
+          "last_used_ns": 1727654400000000000,
+          "favorite_rank": 3,
+          "creation_ns": -5000000000,
+          "xattrs": [
+            [
+              "user.note",
+              [
+                104,
+                105
+              ]
+            ],
+            [
+              "com.example.empty",
+              []
+            ]
+          ],
+          "hidden": true,
+          "type_creator": [
+            1413830740,
+            1953790068
+          ]
+        },
+        "user_exec": true,
+        "symlink_blocked": false
+      },
+      "still_pending": 1024,
+      "should_fetch_content": true,
+      "conflict_copy": {
+        "entry": {
+          "id": 30,
+          "parent": 1,
+          "name": "notes (conflict from Sam's MacBook 2026-09-30 10.00).md",
+          "kind": "File",
+          "size": 1234,
+          "mtime_ns": 1727654400123456789,
+          "mode": 420,
+          "version": {
+            "content": 41,
+            "meta": 42
+          },
+          "symlink_target": null,
+          "lazy": false,
+          "seq": 42,
+          "access": 3
+        },
+        "display_name": "notes (conflict from Sam's MacBook 2026-09-30 10.00).md",
+        "caps": 47,
+        "local": {
+          "tag_data": null,
+          "last_used_ns": null,
+          "favorite_rank": null,
+          "creation_ns": null,
+          "xattrs": [],
+          "hidden": false,
+          "type_creator": null
+        },
+        "user_exec": false,
+        "symlink_blocked": false
+      }
+    }
+  }
+}

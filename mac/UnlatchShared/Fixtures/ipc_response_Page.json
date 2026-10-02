@@ -1,0 +1,143 @@
+{
+  "call": 3,
+  "msg": {
+    "Page": {
+      "items": [
+        {
+          "entry": {
+            "id": 12,
+            "parent": 1,
+            "name": "notes.md",
+            "kind": "File",
+            "size": 1234,
+            "mtime_ns": 1727654400123456789,
+            "mode": 420,
+            "version": {
+              "content": 41,
+              "meta": 42
+            },
+            "symlink_target": null,
+            "lazy": false,
+            "seq": 42,
+            "access": 3
+          },
+          "display_name": "notes.md",
+          "caps": 47,
+          "local": {
+            "tag_data": null,
+            "last_used_ns": null,
+            "favorite_rank": null,
+            "creation_ns": null,
+            "xattrs": [],
+            "hidden": false,
+            "type_creator": null
+          },
+          "user_exec": false,
+          "symlink_blocked": false
+        },
+        {
+          "entry": {
+            "id": 13,
+            "parent": 1,
+            "name": "node_modules",
+            "kind": "Dir",
+            "size": 0,
+            "mtime_ns": 1727654400123456789,
+            "mode": 493,
+            "version": {
+              "content": 41,
+              "meta": 42
+            },
+            "symlink_target": null,
+            "lazy": true,
+            "seq": 42,
+            "access": 7
+          },
+          "display_name": "node_modules",
+          "caps": 47,
+          "local": {
+            "tag_data": null,
+            "last_used_ns": null,
+            "favorite_rank": null,
+            "creation_ns": null,
+            "xattrs": [],
+            "hidden": false,
+            "type_creator": null
+          },
+          "user_exec": false,
+          "symlink_blocked": false
+        },
+        {
+          "entry": {
+            "id": 14,
+            "parent": 1,
+            "name": "current",
+            "kind": "Symlink",
+            "size": 0,
+            "mtime_ns": 1727654400123456789,
+            "mode": 420,
+            "version": {
+              "content": 41,
+              "meta": 42
+            },
+            "symlink_target": "../lib/x.so",
+            "lazy": false,
+            "seq": 42,
+            "access": 3
+          },
+          "display_name": "current",
+          "caps": 47,
+          "local": {
+            "tag_data": null,
+            "last_used_ns": null,
+            "favorite_rank": null,
+            "creation_ns": null,
+            "xattrs": [],
+            "hidden": false,
+            "type_creator": null
+          },
+          "user_exec": false,
+          "symlink_blocked": false
+        },
+        {
+          "entry": {
+            "id": 15,
+            "parent": 1,
+            "name": "README.md",
+            "kind": "File",
+            "size": 1234,
+            "mtime_ns": 1727654400123456789,
+            "mode": 420,
+            "version": {
+              "content": 41,
+              "meta": 42
+            },
+            "symlink_target": null,
+            "lazy": false,
+            "seq": 42,
+            "access": 3
+          },
+          "display_name": "readme (Unlatch 1).md",
+          "caps": 47,
+          "local": {
+            "tag_data": null,
+            "last_used_ns": null,
+            "favorite_rank": null,
+            "creation_ns": null,
+            "xattrs": [],
+            "hidden": false,
+            "type_creator": null
+          },
+          "user_exec": false,
+          "symlink_blocked": false
+        }
+      ],
+      "next": [
+        0,
+        0,
+        0,
+        4
+      ]
+    }
+  }
+}

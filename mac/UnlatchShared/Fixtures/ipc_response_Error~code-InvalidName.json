@@ -1,0 +1,10 @@
+{
+  "call": 99,
+  "msg": {
+    "Error": {
+      "code": "InvalidName",
+      "msg": "InvalidName sample",
+      "current": null
+    }
+  }
+}

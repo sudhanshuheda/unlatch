@@ -1,0 +1,27 @@
+{
+  "call": 12,
+  "msg": {
+    "Create": {
+      "template_id": "t-3",
+      "parent": 1,
+      "name": "Thing.app",
+      "kind": "Package",
+      "has_content": false,
+      "symlink_target": null,
+      "mtime_ns": null,
+      "user_exec": null,
+      "changed_fields": 0,
+      "local": {
+        "tag_data": null,
+        "last_used_ns": null,
+        "favorite_rank": null,
+        "creation_ns": null,
+        "xattrs": [],
+        "hidden": false,
+        "type_creator": null
+      },
+      "may_already_exist": false,
+      "deletion_conflicted": false
+    }
+  }
+}

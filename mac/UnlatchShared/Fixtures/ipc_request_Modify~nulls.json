@@ -1,0 +1,27 @@
+{
+  "call": 14,
+  "msg": {
+    "Modify": {
+      "id": 12,
+      "base": {
+        "content": null,
+        "meta": null
+      },
+      "changed_fields": 8,
+      "new_parent": null,
+      "new_name": null,
+      "has_content": false,
+      "mtime_ns": null,
+      "user_exec": null,
+      "local": {
+        "tag_data": null,
+        "last_used_ns": 1,
+        "favorite_rank": null,
+        "creation_ns": null,
+        "xattrs": [],
+        "hidden": false,
+        "type_creator": null
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "call": 7,
+  "msg": {
+    "MaterializedChanged": {
+      "added": [
+        1,
+        12
+      ],
+      "removed": [
+        99
+      ],
+      "full": true
+    }
+  }
+}

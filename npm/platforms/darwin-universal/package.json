@@ -1,0 +1,30 @@
+{
+  "name": "unlatch-darwin-universal",
+  "version": "0.1.0-alpha.1",
+  "description": "Unlatch platform package: the notarized Unlatch.app (zip) and a universal unlatch CLI for macOS. Installed automatically by `unlatch`; not meant to be used directly.",
+  "homepage": "https://github.com/sudhanshuheda/unlatch#readme",
+  "bugs": {
+    "url": "https://github.com/sudhanshuheda/unlatch/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sudhanshuheda/unlatch.git",
+    "directory": "npm/platforms/darwin-universal"
+  },
+  "license": "MIT OR Apache-2.0",
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ],
+  "files": [
+    "bin/",
+    "app/",
+    "manifest.json",
+    "LICENSE-MIT",
+    "LICENSE-APACHE"
+  ],
+  "preferUnplugged": true
+}

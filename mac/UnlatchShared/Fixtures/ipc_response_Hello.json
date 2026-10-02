@@ -1,0 +1,9 @@
+{
+  "call": 1,
+  "msg": {
+    "Hello": {
+      "proto": 1,
+      "domain": "devbox"
+    }
+  }
+}

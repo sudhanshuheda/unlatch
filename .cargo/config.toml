@@ -1,0 +1,7 @@
+[env]
+# The bundled SQLite (rusqlite "bundled") syncs with fsync() unless told that fdatasync() works.
+# On Linux it does: the WAL is rewritten in place after each checkpoint, and fdatasync() then
+# skips the inode-timestamp log force that fsync() pays on every commit (≈1 ms per replica
+# commit on this xfs VM; T4/T9). Apple builds are unaffected (SQLite uses fsync/F_FULLFSYNC
+# there). An explicit LIBSQLITE3_FLAGS in the environment wins over this default.
+LIBSQLITE3_FLAGS = "-DHAVE_FDATASYNC=1"

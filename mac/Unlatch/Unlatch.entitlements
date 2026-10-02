@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Unlatch.app's executable: the menu-bar UI *and*, launched with the agent flag, the engine agent,
+  so these are also the agent's entitlements. Not sandboxed: it runs /usr/bin/ssh and reads
+  ~/.ssh. Never add com.apple.application-identifier here: AMFI then refuses to let launchd
+  start the agent (MQ-066). No keychain-access-groups (kills ad-hoc builds at exec, MQ-065).
+  mac/scripts/check-bundle.py enforces all of this in CI.
+-->
+<plist version="1.0">
+<dict>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>$(UNLATCH_APP_GROUP)</string>
+	</array>
+</dict>
+</plist>

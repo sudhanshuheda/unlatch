@@ -1,0 +1,21 @@
+{
+  "name": "devbox",
+  "transport": {
+    "command": {
+      "argv": [
+        "/usr/local/bin/unlatchd",
+        "stdio",
+        "--root",
+        "/tmp/r"
+      ],
+      "env": {
+        "UNLATCH_FAULT": "die_after_commit:write"
+      }
+    }
+  },
+  "remote_root": "~/code",
+  "state_dir": "/Users/me/Library/Group Containers/TEAMID.dev.unlatch.unlatch/domains/devbox",
+  "client_name": "Sam's MacBook",
+  "unlatchd_upload": [],
+  "ssh_env": {}
+}

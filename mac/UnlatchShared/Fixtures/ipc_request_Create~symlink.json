@@ -1,0 +1,27 @@
+{
+  "call": 11,
+  "msg": {
+    "Create": {
+      "template_id": "t-2",
+      "parent": 5,
+      "name": "current",
+      "kind": "Symlink",
+      "has_content": false,
+      "symlink_target": "../releases/v2",
+      "mtime_ns": null,
+      "user_exec": null,
+      "changed_fields": 0,
+      "local": {
+        "tag_data": null,
+        "last_used_ns": null,
+        "favorite_rank": null,
+        "creation_ns": null,
+        "xattrs": [],
+        "hidden": false,
+        "type_creator": null
+      },
+      "may_already_exist": false,
+      "deletion_conflicted": true
+    }
+  }
+}

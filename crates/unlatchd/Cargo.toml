@@ -1,0 +1,26 @@
+[package]
+name = "unlatchd"
+description = "Unlatch VM-side daemon: index, inotify watcher, event log, file ops"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+name = "unlatchd"
+path = "src/lib.rs"
+
+[[bin]]
+name = "unlatchd"
+path = "src/main.rs"
+
+[dependencies]
+unlatch-proto.workspace = true
+serde.workspace = true
+postcard.workspace = true
+rand.workspace = true
+libc = "0.2.150"
+# `pure`: no C/asm build step, so the static musl build needs nothing beyond rustup.
+blake3 = { version = "1.5", default-features = false, features = ["std", "pure"] }
+
+[dev-dependencies]
+tempfile.workspace = true

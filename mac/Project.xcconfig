@@ -1,0 +1,23 @@
+// Project-wide settings for every Unlatch target (referenced from project.yml).
+#include "Signing.xcconfig"
+
+MACOSX_DEPLOYMENT_TARGET = 13.0
+SWIFT_VERSION = 5.0
+MARKETING_VERSION = 0.1.0
+CURRENT_PROJECT_VERSION = 1
+// Build scripts run cargo and write into the bundle.
+ENABLE_USER_SCRIPT_SANDBOXING = NO
+DEAD_CODE_STRIPPING = YES
+// Xcode 16 splits Debug executables into a stub plus <name>.debug.dylib (for SwiftUI previews,
+// which Unlatch does not use). Keep Debug bundles laid out like Release: one executable per bundle,
+// which is what adhoc-sign.sh and check-bundle.py verify.
+ENABLE_DEBUG_DYLIB = NO
+
+// libunlatch.a (universal) from mac/scripts/build-rust.sh.
+UNLATCH_RUST_LIB_DIR = $(PROJECT_DIR)/build/rust
+LIBRARY_SEARCH_PATHS = $(inherited) $(UNLATCH_RUST_LIB_DIR)
+SWIFT_INCLUDE_PATHS = $(inherited) $(PROJECT_DIR)/UnlatchShared/Sources/CUnlatch
+// Default link flags for a Rust staticlib on macOS; build-rust.sh writes the exact list from
+// `rustc --print native-static-libs` into the optional include below.
+UNLATCH_RUST_LDFLAGS = -lunlatch -liconv -framework CoreFoundation -framework Security
+#include? "build/rust/native-libs.xcconfig"

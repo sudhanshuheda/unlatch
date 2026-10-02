@@ -1,0 +1,10 @@
+{
+  "call": 99,
+  "msg": {
+    "Error": {
+      "code": "IsDir",
+      "msg": "IsDir sample",
+      "current": null
+    }
+  }
+}

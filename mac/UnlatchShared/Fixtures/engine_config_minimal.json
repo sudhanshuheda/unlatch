@@ -1,0 +1,14 @@
+{
+  "name": "devbox",
+  "transport": {
+    "ssh": {
+      "destination": "devbox",
+      "extra_args": []
+    }
+  },
+  "remote_root": "~/code",
+  "state_dir": "/Users/me/Library/Group Containers/TEAMID.dev.unlatch.unlatch/domains/devbox",
+  "client_name": "Sam's MacBook",
+  "unlatchd_upload": [],
+  "ssh_env": {}
+}

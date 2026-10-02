@@ -1,0 +1,49 @@
+{
+  "call": 13,
+  "msg": {
+    "Modify": {
+      "id": 12,
+      "base": {
+        "content": 41,
+        "meta": 42
+      },
+      "changed_fields": 263,
+      "new_parent": 5,
+      "new_name": "renamed.md",
+      "has_content": true,
+      "mtime_ns": 1727654401000000000,
+      "user_exec": true,
+      "local": {
+        "tag_data": [
+          98,
+          112,
+          108,
+          105,
+          115,
+          116
+        ],
+        "last_used_ns": 1727654400000000000,
+        "favorite_rank": 3,
+        "creation_ns": -5000000000,
+        "xattrs": [
+          [
+            "user.note",
+            [
+              104,
+              105
+            ]
+          ],
+          [
+            "com.example.empty",
+            []
+          ]
+        ],
+        "hidden": true,
+        "type_creator": [
+          1413830740,
+          1953790068
+        ]
+      }
+    }
+  }
+}

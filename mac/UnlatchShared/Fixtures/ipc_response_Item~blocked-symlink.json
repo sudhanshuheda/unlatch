@@ -1,0 +1,37 @@
+{
+  "call": 2,
+  "msg": {
+    "Item": {
+      "entry": {
+        "id": 9,
+        "parent": 1,
+        "name": "etc-passwd",
+        "kind": "Symlink",
+        "size": 0,
+        "mtime_ns": 1727654400123456789,
+        "mode": 420,
+        "version": {
+          "content": 41,
+          "meta": 42
+        },
+        "symlink_target": "/etc/passwd",
+        "lazy": false,
+        "seq": 42,
+        "access": 3
+      },
+      "display_name": "etc-passwd",
+      "caps": 1,
+      "local": {
+        "tag_data": null,
+        "last_used_ns": null,
+        "favorite_rank": null,
+        "creation_ns": null,
+        "xattrs": [],
+        "hidden": false,
+        "type_creator": null
+      },
+      "user_exec": false,
+      "symlink_blocked": true
+    }
+  }
+}

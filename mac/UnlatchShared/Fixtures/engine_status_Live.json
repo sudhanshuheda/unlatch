@@ -1,0 +1,32 @@
+{
+  "state": "Live",
+  "entries": 130000,
+  "anchor": [
+    222,
+    173,
+    190,
+    239,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    7
+  ],
+  "rtt_us": 40125,
+  "cache_bytes": 5242880,
+  "pending_uploads": 2,
+  "server": {
+    "version": "0.1.0",
+    "hostname": "devbox",
+    "root_path": "/home/me/code",
+    "entries": 130000,
+    "watches": 4096,
+    "polled": false,
+    "warnings": [
+      "watch budget reached: 12 dirs polled"
+    ]
+  }
+}

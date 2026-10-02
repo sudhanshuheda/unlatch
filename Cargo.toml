@@ -1,0 +1,36 @@
+[workspace]
+resolver = "2"
+members = [
+  "crates/unlatch-proto",
+  "crates/unlatchd",
+  "crates/unlatch-core",
+  "crates/unlatch-ffi",
+  "crates/unlatch-cli",
+  "crates/unlatch-bench",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/sudhanshuheda/unlatch"
+rust-version = "1.80"
+
+[workspace.dependencies]
+unlatch-proto = { path = "crates/unlatch-proto" }
+unlatch-core = { path = "crates/unlatch-core" }
+serde = { version = "1", features = ["derive"] }
+postcard = { version = "1", features = ["use-std"] }
+lz4_flex = { version = "0.11", default-features = false, features = ["std", "safe-encode", "safe-decode"] }
+thiserror = "1"
+anyhow = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "io-util", "net", "process", "sync", "time", "fs", "signal"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+rand = "0.8"
+tempfile = "3"
+
+[profile.release]
+lto = "thin"
+codegen-units = 4
+debug = 1

@@ -27,7 +27,7 @@ final class PortableTests: XCTestCase {
         XCTAssertThrowsError(try SSHDestination.parse("host:0"))
         XCTAssertThrowsError(try SSHDestination.parse("host:99999"))
         XCTAssertThrowsError(try SSHDestination.parse("a b"))
-        let id = DomainRecord.makeIdentifier(displayName: "Dev Mum (GPU)!")
+        let id = DomainRecord.makeIdentifier(displayName: "Devbox (GPU)!")
         XCTAssertTrue(id.hasPrefix("devbox-gpu-"), id)
         XCTAssertEqual(DomainRecord.makeIdentifier(displayName: "日本").prefix(3), "vm-")
     }

@@ -277,7 +277,7 @@ docs/                DESIGN, TESTING, MACOS, INSTALL, PROTOCOL-NOTES, review/
 
 ## Building from source
 
-**Rust (Linux or macOS).** Rust 1.80 or later. The FUSE frontend is pure Rust and needs only
+**Rust (Linux or macOS).** Rust 1.85 or later. The FUSE frontend is pure Rust and needs only
 `fusermount3` at run time.
 
 ```sh
@@ -299,11 +299,23 @@ fusermount3 -u ~/vm
 `npm/scripts/e2e-local.sh` runs the whole installer flow (`share`, then `connect --mount`) over
 `ssh localhost`.
 
-**Mac app.** Building needs macOS 14 or later with Xcode 16 or later (the app itself targets
-macOS 13), rustup, and [XcodeGen](https://github.com/yonaskolb/XcodeGen). To bundle the Linux
-daemon, also install `zig` and `cargo-zigbuild`.
+**Mac app.** Building needs macOS 14 or later with full Xcode 16 or later (the Command Line
+Tools alone cannot build it; the app itself targets macOS 13), rustup, and
+[XcodeGen](https://github.com/yonaskolb/XcodeGen). To bundle the Linux daemon, also install `zig`
+and `cargo-zigbuild`, or pass binaries built on Linux with `--prebuilt`.
+
+The quickest way to try it on your Mac: one script checks every prerequisite (and prints the fix
+for anything missing), finds your Apple Development signing team, builds, installs
+`/Applications/Unlatch.app` and opens it.
 
 ```sh
+mac/scripts/dev-install.sh                        # or: --prebuilt DIR with unlatchd-x86_64, unlatchd-aarch64
+```
+
+By hand:
+
+```sh
+sudo xcode-select -s /Applications/Xcode.app/Contents/Developer   # if Xcode is not selected yet
 mac/scripts/build-rust.sh                         # universal libunlatch.a and static unlatchd
 swift test --package-path mac/UnlatchShared       # protocol fixtures, mappings, ssh-config parsing
 cd mac && xcodegen generate && open Unlatch.xcodeproj

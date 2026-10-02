@@ -57,9 +57,25 @@ sides cannot drift apart unnoticed.
 ## 2. Building
 
 Requirements: macOS 14 or later with Xcode 16 or later (the app itself targets macOS 13+),
-[rustup](https://rustup.rs), [XcodeGen](https://github.com/yonaskolb/XcodeGen)
+[rustup](https://rustup.rs) (Rust 1.85 or later), [XcodeGen](https://github.com/yonaskolb/XcodeGen)
 (`brew install xcodegen`), and, to bundle `unlatchd`, `zig` and `cargo-zigbuild`
 (`brew install zig && cargo install cargo-zigbuild`).
+
+**Quick path:** `mac/scripts/dev-install.sh [--prebuilt DIR]` does all of the steps below plus
+signing and installing: it checks that full Xcode is selected, its license accepted and first
+launch done, Rust 1.85 or later, and XcodeGen; finds the team of a valid Apple Development
+certificate and writes `mac/Signing.local.xcconfig`; builds; installs `/Applications/Unlatch.app`
+(re-registering the background agent when it replaces an existing copy); and opens it. Each
+missing prerequisite stops it with the exact fix. `--check` only checks; `--unsigned --no-install`
+is the compile check CI runs with macOS's own bash.
+
+Full Xcode must be the active developer directory (the Command Line Tools cannot build the app):
+
+```sh
+sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+sudo xcodebuild -license accept
+sudo xcodebuild -runFirstLaunch
+```
 
 ```sh
 # 1. Rust: universal libunlatch.a -> mac/build/rust, static unlatchd -> mac/build/unlatchd
@@ -98,7 +114,7 @@ settings in `mac/Signing.xcconfig`:
 
 | Setting | Placeholder | Meaning |
 |---|---|---|
-| `UNLATCH_TEAM_ID` | `XXXXXXXXXX` | your Apple Developer Team ID (Xcode → Settings → Accounts) |
+| `UNLATCH_TEAM_ID` | `XXXXXXXXXX` | your Apple Developer Team ID: the `OU` of your Apple Development certificate (`mac/scripts/dev-install.sh` finds it) |
 | `UNLATCH_BUNDLE_PREFIX` | `dev.unlatch.example` | a reverse-DNS prefix you own. **Forks must change it**: two installs with the same bundle ids signed by different teams confuse pluginkit and fileproviderd |
 
 Put yours in `mac/Signing.local.xcconfig` (git-ignored):

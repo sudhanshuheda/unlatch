@@ -173,8 +173,13 @@ jobs:
           if-no-files-found: error
 
   macos:
-    name: macOS app (libunlatch, Swift tests, Xcode build, entitlements)
-    runs-on: macos-15
+    name: macOS app on ${{ matrix.os }} (libunlatch, Swift tests, Xcode build, entitlements)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # macos-15 = Xcode 16; macos-26 = Xcode 26, what a developer installs today.
+        os: [macos-15, macos-26]
     needs: musl
     timeout-minutes: 45
     env:
@@ -188,7 +193,7 @@ jobs:
           targets: aarch64-apple-darwin, x86_64-apple-darwin
       - uses: Swatinem/rust-cache@v2
         with:
-          key: macos
+          key: ${{ matrix.os }}
           cache-on-failure: true
       - uses: actions/download-artifact@v4
         with:
@@ -271,11 +276,20 @@ jobs:
         continue-on-error: true
         run: |
           mac/scripts/adhoc-sign.sh "$DERIVED/Build/Products/Debug/Unlatch.app" mac/build/settings.json --require-unlatchd
+      - name: From-source install script (mac/scripts/dev-install.sh, macOS's own bash 3.2)
+        id: devinstall
+        if: steps.xcodegen.outcome == 'success'
+        continue-on-error: true
+        run: |
+          xg="$(find ~/.xcodegen -type f -name xcodegen -perm -u+x | head -1)"
+          XCODEGEN="$xg" /bin/bash mac/scripts/dev-install.sh --check
+          XCODEGEN="$xg" /bin/bash mac/scripts/dev-install.sh \
+            --unsigned --no-install --prebuilt mac/build/unlatchd-prebuilt
       - name: Upload build logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: macos-build-logs
+          name: macos-build-logs-${{ matrix.os }}
           path: |
             mac/build/xcodebuild.log
             mac/build/settings.json
@@ -286,7 +300,7 @@ jobs:
         if: steps.xcodebuild.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: Unlatch-unsigned
+          name: Unlatch-unsigned-${{ matrix.os }}
           path: ${{ env.DERIVED }}/Build/Products/Debug/Unlatch.app
       - name: Verdict
         if: always()
@@ -297,8 +311,9 @@ jobs:
           SETTINGS: ${{ steps.settings.outcome }}
           CHECKBUNDLE: ${{ steps.checkbundle.outcome }}
           ADHOC: ${{ steps.adhoc.outcome }}
+          DEVINSTALL: ${{ steps.devinstall.outcome }}
         run: |
-          echo "swift test: $SWIFTTEST | xcodegen: $XCODEGEN | xcodebuild: $XCODEBUILD | build settings: $SETTINGS | check-bundle: $CHECKBUNDLE | ad-hoc sign: $ADHOC"
-          for o in "$SWIFTTEST" "$XCODEGEN" "$XCODEBUILD" "$SETTINGS" "$CHECKBUNDLE" "$ADHOC"; do
+          echo "swift test: $SWIFTTEST | xcodegen: $XCODEGEN | xcodebuild: $XCODEBUILD | build settings: $SETTINGS | check-bundle: $CHECKBUNDLE | ad-hoc sign: $ADHOC | dev-install: $DEVINSTALL"
+          for o in "$SWIFTTEST" "$XCODEGEN" "$XCODEBUILD" "$SETTINGS" "$CHECKBUNDLE" "$ADHOC" "$DEVINSTALL"; do
             [ "$o" = success ] || exit 1
           done

@@ -282,7 +282,7 @@ jobs:
         continue-on-error: true
         run: |
           xg="$(find ~/.xcodegen -type f -name xcodegen -perm -u+x | head -1)"
-          XCODEGEN="$xg" /bin/bash mac/scripts/dev-install.sh --check
+          XCODEGEN="$xg" /bin/bash mac/scripts/dev-install.sh --check --unsigned --prebuilt mac/build/unlatchd-prebuilt
           XCODEGEN="$xg" /bin/bash mac/scripts/dev-install.sh \
             --unsigned --no-install --prebuilt mac/build/unlatchd-prebuilt
       - name: Upload build logs
@@ -292,6 +292,7 @@ jobs:
           name: macos-build-logs-${{ matrix.os }}
           path: |
             mac/build/xcodebuild.log
+            mac/build/dev-install-*.log
             mac/build/settings.json
             mac/build/rust/native-libs.xcconfig
             mac/build/rust/native-static-libs.log

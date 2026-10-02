@@ -13,7 +13,9 @@
 # mac/Signing.local.xcconfig; XCODEGEN names the xcodegen binary; UNLATCHD_PREBUILT_DIR = --prebuilt.
 #
 # Runs with the bash 3.2 that ships with macOS. Stops at the first problem and prints the fix.
-set -euo pipefail
+set -Eeuo pipefail
+trap 'echo "error: dev-install: line $LINENO: \"$BASH_COMMAND\" failed" >&2' ERR
+unset CDPATH
 
 MAC_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 REPO_DIR="$(cd "$MAC_DIR/.." && pwd)"
@@ -36,7 +38,7 @@ while [ $# -gt 0 ]; do
   esac
   shift
 done
-if [ "$unsigned" = 1 ] && [ "$install" = 1 ]; then
+if [ "$unsigned" = 1 ] && [ "$install" = 1 ] && [ "$check_only" = 0 ]; then
   echo "--unsigned builds cannot run the Finder integration; add --no-install" >&2; exit 2
 fi
 
@@ -60,9 +62,13 @@ step "Checking prerequisites"
 dev_dir="$(xcode-select -p 2>/dev/null || true)"
 case "$dev_dir" in
   ""|*CommandLineTools*)
-    if [ -d /Applications/Xcode.app ]; then
-      fail "Xcode is installed but not selected (active developer directory: ${dev_dir:-none})" \
-        "sudo xcode-select -s /Applications/Xcode.app/Contents/Developer" \
+    found=""
+    for a in /Applications/Xcode.app /Applications/Xcode*.app "$HOME/Applications"/Xcode*.app; do
+      if [ -z "$found" ] && [ -d "$a/Contents/Developer" ]; then found="$a"; fi
+    done
+    if [ -n "$found" ]; then
+      fail "Xcode is installed ($found) but not selected (active developer directory: ${dev_dir:-none})" \
+        "sudo xcode-select -s \"$found/Contents/Developer\"" \
         "sudo xcodebuild -license accept" \
         "sudo xcodebuild -runFirstLaunch"
     fi
@@ -94,12 +100,12 @@ fi
 command -v cargo >/dev/null 2>&1 && command -v rustup >/dev/null 2>&1 ||
   fail "Rust (rustup) is not installed" \
     "curl -sSf https://sh.rustup.rs | sh -s -- -y && . \"\$HOME/.cargo/env\""
-rust_minor="$(rustc --version 2>/dev/null | sed -n 's/^rustc 1\.\([0-9][0-9]*\).*/\1/p')"
+rust_minor="$(rustc --version 2>/dev/null | sed -n 's/^rustc 1\.\([0-9][0-9]*\).*/\1/p' || true)"
 if [ -z "$rust_minor" ] || [ "$rust_minor" -lt "$MIN_RUST_MINOR" ]; then
   fail "Rust 1.$MIN_RUST_MINOR or later is needed (found: $(rustc --version 2>/dev/null || echo none))" \
     "rustup update stable && rustup default stable"
 fi
-ok "$(rustc --version)"
+ok "$(rustc --version 2>/dev/null || true)"
 
 xcodegen="${XCODEGEN:-$(command -v xcodegen || true)}"
 [ -n "$xcodegen" ] && [ -x "$xcodegen" ] || fail "XcodeGen is not installed" "brew install xcodegen"
@@ -142,7 +148,9 @@ EOF
   team="${UNLATCH_TEAM_ID:-}"
   [ -n "$team" ] || team="$(cfg_value UNLATCH_TEAM_ID)"
   if valid_team "$team" && printf '%s\n' "$teams" | grep -qx "$team"; then
-    ok "team $team (from ${UNLATCH_TEAM_ID:+UNLATCH_TEAM_ID}${UNLATCH_TEAM_ID:-mac/Signing.local.xcconfig})"
+    team_src=mac/Signing.local.xcconfig
+    [ -n "${UNLATCH_TEAM_ID:-}" ] && team_src=UNLATCH_TEAM_ID
+    ok "team $team (from $team_src)"
   else
     if valid_team "$team"; then
       echo "   note: team $team has no valid Apple Development certificate here; using one that does"
@@ -174,13 +182,25 @@ fi
 step "Linux daemon (unlatchd) to bundle"
 if [ -n "$prebuilt" ]; then
   for arch in x86_64 aarch64; do
-    [ -f "$prebuilt/unlatchd-$arch" ] || fail "missing $prebuilt/unlatchd-$arch" \
+    f="$prebuilt/unlatchd-$arch"
+    [ -f "$f" ] || fail "missing $f" \
       "copy both static binaries there, named unlatchd-x86_64 and unlatchd-aarch64"
+    case "$arch" in x86_64) want="x86-64" ;; *) want="aarch64" ;; esac
+    what="$(file -bL "$f" 2>/dev/null || true)"
+    case "$what" in
+      ELF*"$want"*) ;;
+      *) fail "$f is not a Linux $arch executable (file says: ${what:-nothing})" \
+           "copy the static unlatchd for $arch, e.g. from npm package unlatch-linux-$( [ "$arch" = x86_64 ] && echo x64 || echo arm64 )/bin/unlatchd" ;;
+    esac
+    case "$what" in *"dynamically linked"*) echo "   note: $f is dynamically linked; the VM daemon is meant to be static (musl)" ;; esac
   done
   prebuilt="$(cd "$prebuilt" && pwd)"
   ok "using $prebuilt"
 elif command -v zig >/dev/null 2>&1 && command -v cargo-zigbuild >/dev/null 2>&1; then
   ok "building with zig + cargo-zigbuild"
+elif [ -f "$BUILD_DIR/unlatchd/unlatchd-x86_64" ] && [ -f "$BUILD_DIR/unlatchd/unlatchd-aarch64" ]; then
+  echo "   note: no --prebuilt directory and no zig + cargo-zigbuild: reusing the unlatchd staged earlier"
+  echo "         in mac/build/unlatchd (it may be older than this checkout; pass --prebuilt DIR to replace it)"
 else
   echo "   note: no --prebuilt directory and no zig + cargo-zigbuild: the app will not carry unlatchd"
   echo "         and can only use VMs where unlatchd is already on the PATH of a non-interactive ssh."
@@ -206,12 +226,12 @@ fi
 grep -E '^(warning: build-rust|build-rust: libunlatch.a ready|build-rust: unlatchd)' "$rust_log" | sed 's/^/   /' || true
 
 step "Generating the Xcode project"
-(cd "$MAC_DIR" && "$xcodegen" generate) > "$BUILD_DIR/xcodegen.log" 2>&1 ||
-  { tail -20 "$BUILD_DIR/xcodegen.log" >&2; fail "xcodegen generate failed (log: $BUILD_DIR/xcodegen.log)"; }
+(cd "$MAC_DIR" && "$xcodegen" generate) > "$BUILD_DIR/dev-install-xcodegen.log" 2>&1 ||
+  { tail -20 "$BUILD_DIR/dev-install-xcodegen.log" >&2; fail "xcodegen generate failed (log: $BUILD_DIR/dev-install-xcodegen.log)"; }
 ok "mac/Unlatch.xcodeproj"
 
 step "Building Unlatch.app ($( [ "$unsigned" = 1 ] && echo unsigned || echo "signed, team $team" ); a few minutes)"
-xc_log="$BUILD_DIR/xcodebuild.log"
+xc_log="$BUILD_DIR/dev-install-xcodebuild.log"
 sign_args=""
 [ "$unsigned" = 1 ] && sign_args="CODE_SIGNING_ALLOWED=NO"
 # With a prebuilt daemon, a bundle without it is an error, not a warning.
@@ -223,6 +243,8 @@ if ! xcodebuild -project "$MAC_DIR/Unlatch.xcodeproj" -scheme Unlatch -configura
   UNLATCH_SKIP_RUST=1 $sign_args build > "$xc_log" 2>&1; then
   echo "   errors (deduplicated):" >&2
   grep -E "error: " "$xc_log" | sed "s|$REPO_DIR/||" | sort -u | head -40 | sed 's/^/     /' >&2 || true
+  grep -E '^Undefined symbols|referenced from:$|^ld: ' "$xc_log" | sed "s|$REPO_DIR/||" | head -30 | sed 's/^/     /' >&2 || true
+  sed -n '/^The following build commands failed/,/^(/p' "$xc_log" | head -15 | sed 's/^/     /' >&2 || true
   if grep -q "errSecInternalComponent" "$xc_log"; then
     fail "codesign could not use your signing key (full log: $xc_log)" \
       "Run this script at the Mac's own screen and click \"Always Allow\" when the keychain asks."
@@ -254,7 +276,14 @@ fi
 ditto "$built" "$APP_DEST" 2>/dev/null || fail "cannot write to /Applications (is this an admin account?)" \
   "sudo ditto \"$built\" \"$APP_DEST\""
 ok "installed"
-if [ "$replacing" = 1 ]; then
+# xcodebuild registered the build product with LaunchServices too; a second registered copy with
+# the same bundle ids can shadow the installed extension (docs/MACOS.md §4, MQ-081).
+lsreg=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
+if [ -x "$lsreg" ]; then
+  "$lsreg" -u "$built" >/dev/null 2>&1 || true
+  "$lsreg" -f -R -trusted "$APP_DEST" >/dev/null 2>&1 || true
+fi
+if [ "$replacing" = 1 ] || launchctl print "gui/$(id -u)/$prefix.unlatch.agent" >/dev/null 2>&1; then
   # A replaced bundle leaves the old agent registration dead (docs/MACOS.md §4): re-register it.
   "$APP_DEST/Contents/MacOS/Unlatch" --cli repair-agent --json >/dev/null 2>&1 &&
     ok "background agent re-registered" ||

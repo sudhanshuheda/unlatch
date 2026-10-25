@@ -567,8 +567,6 @@ table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font: 400 
   <nav class="c" aria-label="Sections">
     <a href="#install">install</a>
     <a href="#how">how it works</a>
-    <a href="#numbers">numbers</a>
-    <a href="#verified">verified</a>
     <a href="#compare">compare</a>
     <a href="#faq">faq</a>
   </nav>
@@ -609,8 +607,8 @@ table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font: 400 
       </div>
 
       <div class="status">
-        <span><span class="dot" aria-hidden="true"></span>{{status}}: not on npm yet</span>
-        <span>{{domain}} coming soon</span>
+        <span><span class="dot" aria-hidden="true"></span>{{status}}</span>
+        <span>on npm · {{npm}}</span>
         <span>{{license}}</span>
         <span>macOS 13+ · Linux VM · your ssh</span>
       </div>
@@ -660,11 +658,6 @@ table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font: 400 
         </div>
       </div>
       <p class="fd-hint">Click a row. <kbd>↑</kbd> <kbd>↓</kbd> move, <kbd>Space</kbd> opens Quick Look. The cloud marks a file whose contents are still on dev-box.</p>
-      <div class="dim">
-        <div class="rule" aria-hidden="true"><i style="width:{{pct.ls_first}}"></i></div>
-        <div class="v"><span>first <code>ls -la</code>, 1,000 files:</span><span><b>{{b.ls_first.unlatch}}</b> {{name}}</span><span>· sshfs {{b.ls_first.sshfs}}</span></div>
-        <div class="c"><span>{{b.net}}</span> · <span>Linux test box</span> · <span>{{b.profile}}, preliminary</span> · <a href="#numbers">conditions</a></div>
-      </div>
     </figure>
   </div>
 </section>
@@ -758,11 +751,6 @@ table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font: 400 
       <div><b>Both</b>Node, only to run npx</div>
     </div>
   </div>
-  <aside class="margin">
-    <p><b>Pre-release.</b> The package is not on npm yet and {{domain}} is coming soon. These are the commands that will work at release.</p>
-    <p>If ssh needs a password, a 2FA code or a new host key, the Mac app shows ssh's own prompt when <b>you</b> connect. Background reconnects never prompt.</p>
-    <p>Something off? <code>{{doctor_cmd}}</code> checks the setup and says how to fix what it finds.</p>
-  </aside>
 </section>
 
 <!-- ============ HOW IT WORKS ============ -->
@@ -805,73 +793,6 @@ table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font: 400 
   </div>
 </section>
 
-<!-- ============ NUMBERS ============ -->
-<section class="sec" id="numbers" aria-labelledby="numbers-h">
-  <div class="rail">Benchmarks<span>vs sshfs</span></div>
-  <div class="body">
-    <h2 class="hd" id="numbers-h">Measured next to sshfs, on the same shaped link.</h2>
-    <div class="readout">
-      <div class="ro-head">
-        <span><a href="{{repo_url}}/blob/dev/bench/results/SCORECARD.md"><b>bench/results/SCORECARD.md</b></a> · profile {{b.profile}} · {{b.date}}</span>
-        <span class="pre">preliminary</span>
-      </div>
-
-      <div class="metric">
-        <div class="q">First <code>ls -la</code> of a 1,000-file folder</div>
-        <div class="row us"><span class="who">{{wordmark}}</span><div class="track"><div class="fill" style="width:{{pct.ls_first}}"></div></div><span class="v">{{b.ls_first.unlatch}}</span></div>
-        <div class="row them"><span class="who">sshfs</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="v">{{b.ls_first.sshfs}}</span></div>
-        <div class="x">{{b.ls_first.ratio}}<small>vs sshfs</small></div>
-        <p class="fn">The first listing after mounting. {{name}}'s folder tree is already synced by then, which is the design; sshfs starts with an empty cache.</p>
-      </div>
-
-      <div class="metric">
-        <div class="q">A change on the VM becomes visible (p50)</div>
-        <div class="row us"><span class="who">{{wordmark}}</span><div class="track"><div class="fill" style="width:{{pct.vm_write_visible}}"></div></div><span class="v">{{b.vm_write_visible.unlatch}}</span></div>
-        <div class="row them"><span class="who">sshfs</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="v">{{b.vm_write_visible.sshfs}}</span></div>
-        <div class="x">{{b.vm_write_visible.ratio}}<small>vs sshfs</small></div>
-        <p class="fn">From the write on the VM until the client-side engine (on Linux here) has the file. sshfs here polls <code>stat</code> on the exact path. Its folder listings sit behind a 20 s directory cache, which quick mode does not measure.</p>
-      </div>
-
-      <div class="metric">
-        <div class="q">Initial sync of a 100k-file tree</div>
-        <div class="row us"><span class="who">{{wordmark}}</span><div class="track"><div class="fill" style="width:{{pct.initial_sync}}"></div></div><span class="v">{{b.initial_sync.unlatch}}</span></div>
-        <div class="row them"><span class="who">sshfs</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="v">{{b.initial_sync.sshfs}}</span></div>
-        <div class="x">~{{b.initial_sync.ratio}}<small>not like-for-like</small></div>
-        <p class="fn">Until the tree is known on the client. {{name}}'s figure covers the 101,006 entries outside heavy folders; the 30,007 inside <code>node_modules</code>, <code>.git</code> and the like are listed when first opened. The sshfs figure is a walk of all 131,013 entries, extrapolated from 8 s, so the ratio overstates the gap.</p>
-      </div>
-
-      <div class="metric">
-        <div class="q">Cold open of a 4 KiB file</div>
-        <div class="row us"><span class="who">{{wordmark}}</span><div class="track"><div class="fill" style="width:{{pct.open_4k_cold}}"></div></div><span class="v">{{b.open_4k_cold.unlatch}}</span></div>
-        <div class="row them"><span class="who">sshfs</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="v">{{b.open_4k_cold.sshfs}}</span></div>
-        <div class="x">{{b.open_4k_cold.ratio}}<small>vs sshfs</small></div>
-        <p class="fn">A file never opened before. One round trip is 40 ms, so this is close to the floor.</p>
-      </div>
-
-      <div class="metric">
-        <div class="q">p99 metadata request during a big transfer</div>
-        <div class="row us"><span class="who">{{wordmark}}</span><div class="track"><div class="fill" style="width:{{pct.p99_meta}}"></div></div><span class="v">{{b.p99_meta.unlatch}}</span></div>
-        <div class="row them"><span class="who">sshfs</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="v">{{b.p99_meta.sshfs}}</span></div>
-        <div class="x">{{b.p99_meta.ratio}}<small>vs sshfs</small></div>
-        <p class="fn">While a large download and upload share the link. {{name}}: the worse of a ping and a folder listing; sshfs: an uncached <code>lstat</code>. <span class="miss">{{name}} {{b.p99_meta.note}}. The goal is RTT + 30 ms.</span></p>
-      </div>
-
-      <div class="metric lose">
-        <div class="q">Warm <code>ls -la</code>, 1,000 files: sshfs is faster</div>
-        <div class="row us"><span class="who">{{wordmark}}</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="v">{{b.warm_ls.unlatch}}</span></div>
-        <div class="row them"><span class="who">sshfs</span><div class="track"><div class="fill" style="width:{{pctr.warm_ls}}"></div></div><span class="v">{{b.warm_ls.sshfs}}</span></div>
-        <div class="x">{{b.warm_ls.ratio}}<small>sshfs wins</small></div>
-        <p class="fn">Once its cache is warm, sshfs lists faster. Local disk on the same box: {{b.warm_ls.local}}.</p>
-      </div>
-    </div>
-  </div>
-  <aside class="margin">
-    <p><b>Conditions.</b> {{b.net}} nominal. Measured: {{b.net_measured}}.</p>
-    <p>One quick-mode run on a {{b.setup}}. {{name}} and sshfs cross the same shaped path. In this profile that path is a plain TCP bridge, not ssh; the scorecard's <code>-ssh</code> profiles run through real ssh.</p>
-    <p><b>Both clients ran on Linux.</b> The Mac's File Provider layer is not in these numbers. Nothing here was measured on a Mac yet.</p>
-    <p>Medians unless marked p99. Each pair of bars is drawn to its own scale. Shorter is better.</p>
-  </aside>
-</section>
 
 <!-- ============ EVERY MAC APP ============ -->
 <section class="sec" id="apps" aria-labelledby="apps-h">
@@ -888,22 +809,6 @@ table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font: 400 
   </div>
 </section>
 
-<!-- ============ VERIFIED ============ -->
-<section class="sec" id="verified" aria-labelledby="verified-h">
-  <div class="rail">Verification<span>what runs before a change lands</span></div>
-  <div class="body wide">
-    <h2 class="hd" id="verified-h">How it is checked, in the order it runs.</h2>
-    <p class="lede">The hardest behaviour lives inside fileproviderd, a macOS daemon that CI cannot run. So there is a stand-in, and the engine gets hit from every side.</p>
-    <ol class="log">
-      <li><div class="tag">fpsim</div><div><h3>A simulator of macOS's fileproviderd</h3><p>It drives the engine through the same IPC the Finder extension uses and models File Provider quirks measured on macOS: folders enumerated only once, backoff after errors, failed fetches never retried, case and Unicode twins. They come from the 81-entry catalog of the open <a href="{{prior_art_url}}">sshdrive</a> project, credited as prior art. Eviction, Finder decorations and extension launch timing are not modelled.</p></div><div class="res"><b>29 of 81</b>quirks modelled</div></li>
-      <li class="pass"><div class="tag">fuzz</div><div><h3>Randomised concurrent Mac and agent edits</h3><p>Atomic saves, renames, <code>rm -rf</code> and <code>git checkout</code>-style churn on the VM. Finder operations on the Mac. Killed daemons, cut links and crash replays. The trees must converge, and no write on the VM may be lost.</p></div><div class="res"><b>500/500</b>seeds pass</div></li>
-      <li><div class="tag">stress</div><div><h3>Stress campaigns with timing perturbations</h3><p>A real directory churned with hard links and daemon restarts, under several timing shapes. The replica is checked against the disk in both directions.</p></div><div class="res"><b>disk ⇄ replica</b>checked both ways</div></li>
-      <li><div class="tag">bench</div><div><h3>A network-shaped benchmark against sshfs</h3><p>Both cross the same kernel-shaped link. The numbers above come from it, with their conditions.</p></div><div class="res"><b>{{b.profile}}</b>and other profiles</div></li>
-      <li><div class="tag">review</div><div><h3>Adversarial review</h3><p>Reviewers attacked the design and the code. Every finding was reproduced independently before it was fixed.</p></div><div class="res"><b>repro first</b>then fix</div></li>
-      <li class="gap"><div class="tag">mac</div><div><h3>Not yet run on a real Mac</h3><p>The Mac app builds in CI. Measuring what you see in Finder on real hardware is the last step before release, and it has not happened yet.</p></div><div class="res"><b>open</b>before release</div></li>
-    </ol>
-  </div>
-</section>
 
 <!-- ============ SECURITY ============ -->
 <section class="sec" id="security" aria-labelledby="security-h">
@@ -958,7 +863,7 @@ table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font: 400 
   <div class="body wide">
     <h2 class="hd" id="faq-h">Questions you might have.</h2>
     <div class="qa">
-      <div><h3>Can I use it today?</h3><p>Not yet. It is pre-release. The source is at <a href="{{repo_url}}">github.com/{{repo_label}}</a> ({{repo_state}}), the npm package is not published yet, and {{domain}} is coming soon.</p></div>
+      <div><h3>Can I use it today?</h3><p>Yes — it is an early pre-release, open source at <a href="{{repo_url}}">github.com/{{repo_label}}</a> ({{repo_state}}). The VM daemon and Linux client install from npm as <code>{{npm}}</code>; the macOS app builds from source for now, with a signed release to come.</p></div>
       <div><h3>Does it download my whole repo?</h3><p>No. Names, sizes and dates sync up front; heavy folders such as <code>node_modules</code> and <code>.git</code> are listed when you first open them. A file's contents download when you open it. Small files are fetched ahead when you look at their folder.</p></div>
       <div><h3>Does it work with Tailscale or a bastion host?</h3><p>If <code>ssh dev-box</code> works from your Mac, {{name}} can use it. It reads your <code>~/.ssh/config</code>, agent and ProxyJump.</p></div>
       <div><h3>What if my agent and I edit the same file?</h3><p>You get a conflict copy next to the file. Neither version is lost.</p></div>
@@ -982,9 +887,9 @@ table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font: 400 
     </div>
   </div>
   <div class="status">
-    <span><span class="dot" aria-hidden="true"></span>{{status}}: not on npm yet</span>
+    <span><span class="dot" aria-hidden="true"></span>{{status}}</span>
     <span><a href="{{repo_url}}">GitHub</a> ({{repo_state}})</span>
-    <span><a href="{{skill_url}}">SKILL.md</a> · <a href="{{site_url}}/llms.txt">llms.txt</a> ({{domain}} coming soon)</span>
+    <span><a href="{{skill_url}}">SKILL.md</a> · <a href="{{site_url}}/llms.txt">llms.txt</a> (on npm · {{npm}})</span>
   </div>
 </section>
 
@@ -994,7 +899,7 @@ table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font: 400 
   <div class="colophon">
     <span>{{name}} is a personal open-source project, not affiliated with any company.</span>
     <a href="{{repo_url}}">github.com/{{repo_label}} ({{repo_state}})</a>
-    <span>{{domain}} · coming soon</span>
+    <span>{{domain}}</span>
     <span>{{license}}</span>
     <span>Prior art: <a href="{{prior_art_url}}">sshdrive</a></span>
   </div>

@@ -250,11 +250,11 @@ test('connect/update never downgrade a newer installed app (semver, not string e
   const s = steps(sys);
   for (const forbidden of ['ditto -x -k', 'osascript', 'pkill', 'cli repair-agent']) assert.ok(!s.includes(forbidden), `${forbidden} in ${s}`);
   assert.equal(fs.readFileSync(path.join(sys.paths.applications, 'Unlatch.app', 'Contents', 'Info.plist'), 'utf8'), '0.3.0');
-  assert.match(JSON.parse(sys.stdout()).warnings.join('\n'), /newer than this unlatch[\s\S]*npx unlatch@latest/);
+  assert.match(JSON.parse(sys.stdout()).warnings.join('\n'), /newer than this unlatchfs[\s\S]*npx unlatchfs@latest/);
   assert.ok(app.log.some((l) => l[0] === 'add'));
   const h = macSys({ installed: '0.3.0' });
   assert.equal(await main(['connect', 'dev:~'], h.sys), 0, h.sys.stderr());
-  assert.match(h.sys.stderr(), /Unlatch\.app 0\.3\.0 is newer than this unlatch \(0\.2\.0\); keeping it/);
+  assert.match(h.sys.stderr(), /Unlatch\.app 0\.3\.0 is newer than this unlatchfs \(0\.2\.0\); keeping it/);
 
   const u = macSys({ installed: '0.10.0' }); // 0.10.0 > 0.2.0 numerically, < as strings
   assert.equal(await main(['update', '--json'], u.sys), 0, u.sys.stderr());

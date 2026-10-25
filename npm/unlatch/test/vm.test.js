@@ -63,7 +63,7 @@ test('share --json: installs into UNLATCH_HOME, starts the server, prints the Ma
   assert.equal(fs.statSync(r.daemon.path).mode & 0o777, 0o700);
   // SSH_CONNECTION's server address and non-default port.
   assert.equal(r.host_candidates[0].source, 'ssh-connection');
-  assert.equal(r.mac_command, 'npx unlatch connect dev@203.0.113.7:~/proj --port 2222');
+  assert.equal(r.mac_command, 'npx unlatchfs connect dev@203.0.113.7:~/proj --port 2222');
   assert.equal(r.port, 2222);
   assert.ok(Array.isArray(r.warnings));
   for (const k of ['mac_command', 'host_candidates', 'path', 'daemon_version', 'warnings']) assert.ok(k in r, k);
@@ -88,7 +88,7 @@ test('share: Tailscale MagicDNS name wins when tailscale answers', async () => {
   const v = vmSys({ env: { PATH: `${bin}:${process.env.PATH}`, SSH_CONNECTION: '' }, which: (c) => realSys({ env: { PATH: `${bin}:${process.env.PATH}` } }).which(c) });
   assert.equal(await main(['share', '--json', '--no-serve'], v.sys), 0, v.stderr());
   const r = JSON.parse(v.stdout());
-  assert.equal(r.mac_command, 'npx unlatch connect dev@box.tail9.ts.net:~/proj');
+  assert.equal(r.mac_command, 'npx unlatchfs connect dev@box.tail9.ts.net:~/proj');
   assert.deepEqual(r.host_candidates.slice(0, 2).map((c) => c.source), ['tailscale', 'tailscale-ip']);
   assert.equal(r.daemon.server, null);
 });
@@ -96,7 +96,7 @@ test('share: Tailscale MagicDNS name wins when tailscale answers', async () => {
 test('share: human output leads with the Mac command; errors are usage errors', async () => {
   const v = vmSys();
   assert.equal(await main(['share', '--no-serve'], v.sys), 0, v.stderr());
-  assert.match(v.stdout(), /On your Mac, run this in Terminal:\n\n {4}npx unlatch connect dev@203\.0\.113\.7:~\/proj --port 2222/);
+  assert.match(v.stdout(), /On your Mac, run this in Terminal:\n\n {4}npx unlatchfs connect dev@203\.0\.113\.7:~\/proj --port 2222/);
   const e = vmSys();
   assert.equal(await main(['share', '/definitely/not/here', '--json'], e.sys), 2);
   assert.equal(JSON.parse(e.stdout()).code, 'usage');
@@ -209,14 +209,14 @@ test('share on a NAT cloud VM without metadata: placeholder command, host_guess 
   const v = vmSys({ env: { SSH_CONNECTION: '203.0.113.5 50000 10.0.1.23 22' }, fetchSync: (reqs) => reqs.map(() => null) });
   assert.equal(await main(['share', '--json', '--no-serve'], v.sys), 0, v.stderr());
   const r = JSON.parse(v.stdout());
-  assert.equal(r.mac_command, "npx unlatch connect 'dev@<your-ssh-host>:~/proj'");
+  assert.equal(r.mac_command, "npx unlatchfs connect 'dev@<your-ssh-host>:~/proj'");
   assert.equal(r.host_guess, true);
   assert.match(r.host_hint, /Replace <your-ssh-host>/);
   assert.ok(r.host_candidates.some((c) => c.host === '10.0.1.23'));
 
   const h = vmSys({ env: { SSH_CONNECTION: '203.0.113.5 50000 10.0.1.23 22' }, fetchSync: (reqs) => reqs.map(() => null) });
   assert.equal(await main(['share', '--no-serve'], h.sys), 0, h.stderr());
-  assert.match(h.stdout(), /npx unlatch connect 'dev@<your-ssh-host>:~\/proj'\n\n! Could not tell how your Mac reaches this VM/);
+  assert.match(h.stdout(), /npx unlatchfs connect 'dev@<your-ssh-host>:~\/proj'\n\n! Could not tell how your Mac reaches this VM/);
 });
 
 test('share on a NAT cloud VM with metadata: the public address is the Mac command', async () => {
@@ -225,7 +225,7 @@ test('share on a NAT cloud VM with metadata: the public address is the Mac comma
   const v = vmSys({ env: { SSH_CONNECTION: '203.0.113.5 50000 10.0.1.23 22' }, fetchSync });
   assert.equal(await main(['share', '--json', '--no-serve'], v.sys), 0, v.stderr());
   const r = JSON.parse(v.stdout());
-  assert.equal(r.mac_command, 'npx unlatch connect dev@35.9.8.7:~/proj');
+  assert.equal(r.mac_command, 'npx unlatchfs connect dev@35.9.8.7:~/proj');
   assert.equal(r.host_guess, false);
   assert.equal(r.host_candidates[0].source, 'cloud-metadata');
 });

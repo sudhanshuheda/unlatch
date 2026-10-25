@@ -15,7 +15,7 @@ const BUILD_FROM_SOURCE_URL = `${REPO_URL}#building-from-source`;
 const SOURCE_NOTE = null;
 
 // npm
-const CLI = 'unlatch'; // the unscoped package and its bin
+const CLI = 'unlatchfs'; // the unscoped npm package and its primary bin (npm blocked bare "unlatch": too close to "unfetch")
 const PLATFORM_PREFIX = 'unlatch-'; // platform packages (unscoped): unlatch-linux-x64, ...
 
 // Binaries shipped inside the platform packages.

@@ -141,6 +141,8 @@ else
 $identities
 EOF
   fi
+  # fall back to an explicit UNLATCH_TEAM_ID when cert auto-detection comes up empty
+  teams="${teams:-${UNLATCH_TEAM_ID:-}}"
   [ -n "$teams" ] || fail "no valid \"Apple Development\" signing certificate in your keychain" \
     "Open Xcode > Settings > Accounts, sign in with your Apple ID, select your team," \
     "click Manage Certificates..., then + > Apple Development. Run this script again."

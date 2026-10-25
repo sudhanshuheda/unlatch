@@ -60,7 +60,7 @@ test('resolvePlatform on a Mac: not in this release → NotPublishedError; in th
 
 for (const [label, argv] of [
   ['connect', ['connect', 'sam@dev-vm:~/code']],
-  ['the wizard (plain `npx unlatch` in a terminal)', []],
+  ['the wizard (plain `npx unlatchfs` in a terminal)', []],
   ['status', ['status']],
   ['doctor', ['doctor']],
 ]) {

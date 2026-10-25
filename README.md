@@ -11,7 +11,7 @@ writes without copying files back and forth.
 > **Status: pre-release.** The VM daemon, the installer and the Linux FUSE client run and are
 > tested end to end on Linux. The Mac app compiles and passes its bundle checks in CI, but it
 > has not shipped, and nothing on the Mac side has been run on a real Mac from this repository
-> yet. No npm package is published, and unlatch.dev is not live. To try Unlatch today, build
+> yet. No npm package is published, and unlatchfs.dev is not live. To try Unlatch today, build
 > it from source ([below](#building-from-source)).
 
 ## Why
@@ -42,7 +42,7 @@ These are the commands as they will work once the packages are published.
 
 ```sh
 cd ~/code
-npx unlatch share
+npx unlatchfs share
 ```
 
 This installs the daemon, checks the VM (inotify limits, filesystem type, disk space, sshd),
@@ -53,30 +53,30 @@ provider's public address for a VM behind NAT, or a placeholder with a hint when
 **On your Mac**, paste the line it printed into Terminal:
 
 ```sh
-npx unlatch connect you@dev-box:~/code
+npx unlatchfs connect you@dev-box:~/code
 ```
 
 The first run installs Unlatch.app, adds the VM, and opens the folder in Finder. Running
-`npx unlatch` on the Mac with no arguments starts a wizard that lists the hosts in your
+`npx unlatchfs` on the Mac with no arguments starts a wizard that lists the hosts in your
 `~/.ssh/config`.
 
 **From Claude Code or Codex** on the VM, paste:
 
 ```text
-Set up Unlatch so I can browse this machine in Finder: https://unlatch.dev/SKILL.md
+Set up Unlatch so I can browse this machine in Finder: https://unlatchfs.dev/SKILL.md
 ```
 
 The agent runs `npx -y unlatch share --json` and gives you the line for your Mac. The skill
 file the agent reads is [`site/dist/SKILL.md`](https://github.com/sudhanshuheda/unlatch/blob/dev/site/dist/SKILL.md)
-in this repository; unlatch.dev will serve the same file. `npx unlatch skill` installs it for
+in this repository; unlatchfs.dev will serve the same file. `npx unlatchfs skill` installs it for
 Claude Code (`~/.claude/skills/unlatch/`) and Codex (`~/.agents/skills/unlatch/`), so that
 "show me this folder in Finder" is enough.
 
 **On a Linux desktop**, mount the folder with FUSE instead of Finder:
 
 ```sh
-npx unlatch connect you@dev-box:~/code --mount ~/dev
-npx unlatch remove --mount ~/dev
+npx unlatchfs connect you@dev-box:~/code --mount ~/dev
+npx unlatchfs remove --mount ~/dev
 ```
 
 Other commands: `status`, `open`, `remove <name>`, `doctor`, `update`, `uninstall --yes`. Every
@@ -269,7 +269,7 @@ crates/
 mac/                 Swift: Unlatch (app + agent), UnlatchFileProvider, UnlatchShared,
                      UnlatchAskpass; XcodeGen project.yml, Signing.xcconfig, build scripts
 npm/                 the `unlatch` installer, platform packages, release scripts
-site/                the unlatch.dev page and the agent skill (SKILL.md)
+site/                the unlatchfs.dev page and the agent skill (SKILL.md)
 scripts/             verify.sh (the full verification loop), bench.sh
 bench/               bench docs, baseline, results and scorecards
 docs/                DESIGN, TESTING, MACOS, INSTALL, PROTOCOL-NOTES, review/

@@ -1,5 +1,5 @@
 {
-  "name": "unlatch",
+  "name": "unlatchfs",
   "version": "0.1.0-alpha.1",
   "description": "Your cloud VM's files in macOS Finder, as snappy as a local folder, for people who run Claude Code or Codex on remote VMs. Pre-release: the Linux VM daemon and Linux FUSE client work; the Mac app is not published yet.",
   "keywords": [
@@ -24,6 +24,7 @@
   },
   "license": "MIT OR Apache-2.0",
   "bin": {
+    "unlatchfs": "bin/unlatch.js",
     "unlatch": "bin/unlatch.js"
   },
   "main": "lib/cli.js",

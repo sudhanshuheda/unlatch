@@ -16,8 +16,8 @@ test('skill --all writes Claude Code and Codex locations', async () => {
     path.join(sys.home, '.agents', 'skills', 'unlatch', 'SKILL.md'),
   ]);
   const text = fs.readFileSync(paths[0], 'utf8');
-  assert.match(text, /^---\nname: unlatch\ndescription: .+\n---\n/);
-  assert.match(text, /npx -y unlatch share --json/);
+  assert.match(text, /^---\nname: unlatchfs\ndescription: .+\n---\n/);
+  assert.match(text, /npx -y unlatchfs share --json/);
   assert.match(text, /mac_command/);
 });
 
@@ -57,7 +57,7 @@ test('the npm skill is site/src/SKILL.md rendered with brand.json (run site/buil
 
 test('the skill carries the rules and the host_guess handling', () => {
   const text = fs.readFileSync(path.join(__dirname, '..', 'skill', 'SKILL.md'), 'utf8');
-  assert.match(text, /^---\nname: unlatch\ndescription: .+\n---\n/);
+  assert.match(text, /^---\nname: unlatchfs\ndescription: .+\n---\n/);
   assert.match(text, /Never ask the user for a password, private key or token/);
   assert.match(text, /Never open ports/);
   assert.match(text, /Never run the Mac command yourself on the VM/);

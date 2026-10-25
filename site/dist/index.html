@@ -586,6 +586,7 @@ table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font: 400 
   <nav class="c" aria-label="Sections">
     <a href="#install">install</a>
     <a href="#how">how it works</a>
+    <a href="#numbers">numbers</a>
     <a href="#compare">compare</a>
     <a href="#faq">faq</a>
   </nav>
@@ -812,6 +813,67 @@ table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font: 400 
   </div>
 </section>
 
+<!-- ============ NUMBERS ============ -->
+<section class="sec" id="numbers" aria-labelledby="numbers-h">
+  <div class="rail">Benchmarks<span>vs sshfs</span></div>
+  <div class="body">
+    <h2 class="hd" id="numbers-h">Measured next to sshfs, on the same shaped link.</h2>
+    <div class="readout">
+      <div class="ro-head">
+        <span><a href="https://github.com/sudhanshuheda/unlatch/blob/dev/bench/results/SCORECARD.md"><b>bench/results/SCORECARD.md</b></a> · profile rtt40-bw50 · 1 Oct 2026</span>
+        <span class="pre">preliminary</span>
+      </div>
+
+      <div class="metric">
+        <div class="q">First <code>ls -la</code> of a 1,000-file folder</div>
+        <div class="row us"><span class="who">unlatch</span><div class="track"><div class="fill" style="width:7.05%"></div></div><span class="v">23.2 ms</span></div>
+        <div class="row them"><span class="who">sshfs</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="v">329 ms</span></div>
+        <div class="x">14.2×<small>vs sshfs</small></div>
+        <p class="fn">The first listing after mounting. Unlatch's folder tree is already synced by then, which is the design; sshfs starts with an empty cache.</p>
+      </div>
+
+      <div class="metric">
+        <div class="q">A change on the VM becomes visible (p50)</div>
+        <div class="row us"><span class="who">unlatch</span><div class="track"><div class="fill" style="width:55.61%"></div></div><span class="v">22.8 ms</span></div>
+        <div class="row them"><span class="who">sshfs</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="v">41.0 ms</span></div>
+        <div class="x">1.8×<small>vs sshfs</small></div>
+        <p class="fn">From the write on the VM until the client-side engine (on Linux here) has the file. sshfs here polls <code>stat</code> on the exact path. Its folder listings sit behind a 20 s directory cache, which quick mode does not measure.</p>
+      </div>
+
+      <div class="metric">
+        <div class="q">Initial sync of a 100k-file tree</div>
+        <div class="row us"><span class="who">unlatch</span><div class="track"><div class="fill" style="width:0.35%"></div></div><span class="v">1.18 s</span></div>
+        <div class="row them"><span class="who">sshfs</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="v">~338 s</span></div>
+        <div class="x">~287.4×<small>not like-for-like</small></div>
+        <p class="fn">Until the tree is known on the client. Unlatch's figure covers the 101,006 entries outside heavy folders; the 30,007 inside <code>node_modules</code>, <code>.git</code> and the like are listed when first opened. The sshfs figure is a walk of all 131,013 entries, extrapolated from 8 s, so the ratio overstates the gap.</p>
+      </div>
+
+      <div class="metric">
+        <div class="q">Cold open of a 4 KiB file</div>
+        <div class="row us"><span class="who">unlatch</span><div class="track"><div class="fill" style="width:34.11%"></div></div><span class="v">42.3 ms</span></div>
+        <div class="row them"><span class="who">sshfs</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="v">124 ms</span></div>
+        <div class="x">2.9×<small>vs sshfs</small></div>
+        <p class="fn">A file never opened before. One round trip is 40 ms, so this is close to the floor.</p>
+      </div>
+
+      <div class="metric">
+        <div class="q">p99 metadata request during a big transfer</div>
+        <div class="row us"><span class="who">unlatch</span><div class="track"><div class="fill" style="width:5.58%"></div></div><span class="v">89.1 ms</span></div>
+        <div class="row them"><span class="who">sshfs</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="v">1,597 ms</span></div>
+        <div class="x">17.9×<small>vs sshfs</small></div>
+        <p class="fn">While a large download and upload share the link. Unlatch: the worse of a ping and a folder listing; sshfs: an uncached <code>lstat</code>. </p>
+      </div>
+
+      <div class="metric lose">
+        <div class="q">Warm <code>ls -la</code>, 1,000 files: sshfs is faster</div>
+        <div class="row us"><span class="who">unlatch</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="v">10.4 ms</span></div>
+        <div class="row them"><span class="who">sshfs</span><div class="track"><div class="fill" style="width:66.63%"></div></div><span class="v">6.93 ms</span></div>
+        <div class="x">0.7×<small>sshfs wins</small></div>
+        <p class="fn">Once its cache is warm, sshfs lists faster. Local disk on the same box: 10.6 ms.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- ============ EVERY MAC APP ============ -->
 <section class="sec" id="apps" aria-labelledby="apps-h">
@@ -908,7 +970,7 @@ table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font: 400 
   <div class="status">
     <span><span class="dot" aria-hidden="true"></span>pre-release</span>
     <span><a href="https://github.com/sudhanshuheda/unlatch">GitHub</a> (open source)</span>
-    <span><a href="https://unlatchfs.dev/SKILL.md">SKILL.md</a> · <a href="https://unlatchfs.dev/llms.txt">llms.txt</a> (on npm · unlatchfs)</span>
+    <span><a href="https://unlatchfs.dev/SKILL.md">SKILL.md</a> · <a href="https://unlatchfs.dev/llms.txt">llms.txt</a></span>
   </div>
 </section>
 

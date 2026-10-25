@@ -567,6 +567,7 @@ table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font: 400 
   <nav class="c" aria-label="Sections">
     <a href="#install">install</a>
     <a href="#how">how it works</a>
+    <a href="#numbers">numbers</a>
     <a href="#compare">compare</a>
     <a href="#faq">faq</a>
   </nav>
@@ -793,6 +794,67 @@ table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font: 400 
   </div>
 </section>
 
+<!-- ============ NUMBERS ============ -->
+<section class="sec" id="numbers" aria-labelledby="numbers-h">
+  <div class="rail">Benchmarks<span>vs sshfs</span></div>
+  <div class="body">
+    <h2 class="hd" id="numbers-h">Measured next to sshfs, on the same shaped link.</h2>
+    <div class="readout">
+      <div class="ro-head">
+        <span><a href="{{repo_url}}/blob/dev/bench/results/SCORECARD.md"><b>bench/results/SCORECARD.md</b></a> · profile {{b.profile}} · {{b.date}}</span>
+        <span class="pre">preliminary</span>
+      </div>
+
+      <div class="metric">
+        <div class="q">First <code>ls -la</code> of a 1,000-file folder</div>
+        <div class="row us"><span class="who">{{wordmark}}</span><div class="track"><div class="fill" style="width:{{pct.ls_first}}"></div></div><span class="v">{{b.ls_first.unlatch}}</span></div>
+        <div class="row them"><span class="who">sshfs</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="v">{{b.ls_first.sshfs}}</span></div>
+        <div class="x">{{b.ls_first.ratio}}<small>vs sshfs</small></div>
+        <p class="fn">The first listing after mounting. {{name}}'s folder tree is already synced by then, which is the design; sshfs starts with an empty cache.</p>
+      </div>
+
+      <div class="metric">
+        <div class="q">A change on the VM becomes visible (p50)</div>
+        <div class="row us"><span class="who">{{wordmark}}</span><div class="track"><div class="fill" style="width:{{pct.vm_write_visible}}"></div></div><span class="v">{{b.vm_write_visible.unlatch}}</span></div>
+        <div class="row them"><span class="who">sshfs</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="v">{{b.vm_write_visible.sshfs}}</span></div>
+        <div class="x">{{b.vm_write_visible.ratio}}<small>vs sshfs</small></div>
+        <p class="fn">From the write on the VM until the client-side engine (on Linux here) has the file. sshfs here polls <code>stat</code> on the exact path. Its folder listings sit behind a 20 s directory cache, which quick mode does not measure.</p>
+      </div>
+
+      <div class="metric">
+        <div class="q">Initial sync of a 100k-file tree</div>
+        <div class="row us"><span class="who">{{wordmark}}</span><div class="track"><div class="fill" style="width:{{pct.initial_sync}}"></div></div><span class="v">{{b.initial_sync.unlatch}}</span></div>
+        <div class="row them"><span class="who">sshfs</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="v">{{b.initial_sync.sshfs}}</span></div>
+        <div class="x">~{{b.initial_sync.ratio}}<small>not like-for-like</small></div>
+        <p class="fn">Until the tree is known on the client. {{name}}'s figure covers the 101,006 entries outside heavy folders; the 30,007 inside <code>node_modules</code>, <code>.git</code> and the like are listed when first opened. The sshfs figure is a walk of all 131,013 entries, extrapolated from 8 s, so the ratio overstates the gap.</p>
+      </div>
+
+      <div class="metric">
+        <div class="q">Cold open of a 4 KiB file</div>
+        <div class="row us"><span class="who">{{wordmark}}</span><div class="track"><div class="fill" style="width:{{pct.open_4k_cold}}"></div></div><span class="v">{{b.open_4k_cold.unlatch}}</span></div>
+        <div class="row them"><span class="who">sshfs</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="v">{{b.open_4k_cold.sshfs}}</span></div>
+        <div class="x">{{b.open_4k_cold.ratio}}<small>vs sshfs</small></div>
+        <p class="fn">A file never opened before. One round trip is 40 ms, so this is close to the floor.</p>
+      </div>
+
+      <div class="metric">
+        <div class="q">p99 metadata request during a big transfer</div>
+        <div class="row us"><span class="who">{{wordmark}}</span><div class="track"><div class="fill" style="width:{{pct.p99_meta}}"></div></div><span class="v">{{b.p99_meta.unlatch}}</span></div>
+        <div class="row them"><span class="who">sshfs</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="v">{{b.p99_meta.sshfs}}</span></div>
+        <div class="x">{{b.p99_meta.ratio}}<small>vs sshfs</small></div>
+        <p class="fn">While a large download and upload share the link. {{name}}: the worse of a ping and a folder listing; sshfs: an uncached <code>lstat</code>. </p>
+      </div>
+
+      <div class="metric lose">
+        <div class="q">Warm <code>ls -la</code>, 1,000 files: sshfs is faster</div>
+        <div class="row us"><span class="who">{{wordmark}}</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="v">{{b.warm_ls.unlatch}}</span></div>
+        <div class="row them"><span class="who">sshfs</span><div class="track"><div class="fill" style="width:{{pctr.warm_ls}}"></div></div><span class="v">{{b.warm_ls.sshfs}}</span></div>
+        <div class="x">{{b.warm_ls.ratio}}<small>sshfs wins</small></div>
+        <p class="fn">Once its cache is warm, sshfs lists faster. Local disk on the same box: {{b.warm_ls.local}}.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- ============ EVERY MAC APP ============ -->
 <section class="sec" id="apps" aria-labelledby="apps-h">
@@ -889,7 +951,7 @@ table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font: 400 
   <div class="status">
     <span><span class="dot" aria-hidden="true"></span>{{status}}</span>
     <span><a href="{{repo_url}}">GitHub</a> ({{repo_state}})</span>
-    <span><a href="{{skill_url}}">SKILL.md</a> · <a href="{{site_url}}/llms.txt">llms.txt</a> (on npm · {{npm}})</span>
+    <span><a href="{{skill_url}}">SKILL.md</a> · <a href="{{site_url}}/llms.txt">llms.txt</a></span>
   </div>
 </section>
 

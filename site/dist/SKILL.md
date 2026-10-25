@@ -1,5 +1,5 @@
 ---
-name: unlatch
+name: unlatchfs
 description: Show a folder on this Linux VM in the user's macOS Finder (or on a Linux desktop) with Unlatch. Use when the user asks to browse, open, preview or drag this machine's files on their own computer, for example "set up Unlatch", "show this folder in Finder", "I want to see these files on my Mac". Do not use for copying single files into the chat.
 ---
 
@@ -23,8 +23,8 @@ almost at once. No ports are opened. Source: https://github.com/sudhanshuheda/un
    needs Node 18 or later for `npx`, and stop.
 2. Pick the folder. Use the one the user named. If they did not name one, ask which folder to
    share, and suggest the current project directory.
-3. In that folder, run: `npx -y unlatch share --json`
-   (or `npx -y unlatch share --json <folder>`).
+3. In that folder, run: `npx -y unlatchfs share --json`
+   (or `npx -y unlatchfs share --json <folder>`).
 4. Read the JSON on stdout. First check `mac_app_published`:
    - If it is `false`, this is a pre-release without the Mac app, so `mac_command` does not
      work on a Mac yet. Do not give it as the thing to run. Tell the user, in one line, that
@@ -53,14 +53,14 @@ Keep the report short: the command, where to paste it, what they will see.
 
 ## If something fails
 
-Run `npx -y unlatch doctor --json` in the same folder and relay each failed check with its fix.
+Run `npx -y unlatchfs doctor --json` in the same folder and relay each failed check with its fix.
 Common causes: the inotify watch limit is too low, the folder is on a network filesystem,
 or the Mac cannot reach this VM's host name (use another `host_candidates` entry, or the
 user's own `~/.ssh/config` alias).
 
 ## If you are on the user's Mac instead
 
-Run `npx -y unlatch connect <user@host>:<folder> --json` with the VM the user named. When the
+Run `npx -y unlatchfs connect <user@host>:<folder> --json` with the VM the user named. When the
 Mac app is published, it installs the app on first use and opens the folder in Finder. If it
 exits with code 3, the user has to act (for example approve the app in System Settings → Login
 Items, or answer an ssh dialog); tell them what the `error` field says. If the JSON `code` is
@@ -69,5 +69,5 @@ build-from-source link from `error`.
 
 ## Other commands
 
-`npx -y unlatch status`, `npx -y unlatch doctor [folder]`, `npx -y unlatch remove <name>`.
+`npx -y unlatchfs status`, `npx -y unlatchfs doctor [folder]`, `npx -y unlatchfs remove <name>`.
 Add `--json` to any command to get machine-readable output.

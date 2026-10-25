@@ -7,20 +7,20 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#ECEEEE" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0F1114" media="(prefers-color-scheme: dark)">
-<link rel="canonical" href="https://unlatch.dev/">
+<link rel="canonical" href="https://unlatchfs.dev/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2314171C'/%3E%3Cpath d='M7.5 9v8.5a5 5 0 0 0 10 0V9' fill='none' stroke='%23ECEEEE' stroke-width='3.6'/%3E%3Crect x='21' y='9' width='5' height='14' fill='%23F06AAE'/%3E%3C/svg%3E">
 <link rel="alternate" type="text/markdown" href="/SKILL.md" title="Unlatch agent setup">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Unlatch: Your VM, in Finder.">
 <meta property="og:description" content="Your cloud VM's files in macOS Finder, as snappy as a local folder. Built for people who run Claude Code and Codex on remote VMs.">
-<meta property="og:url" content="https://unlatch.dev/">
+<meta property="og:url" content="https://unlatchfs.dev/">
 <meta property="og:site_name" content="Unlatch">
-<meta property="og:image" content="https://unlatch.dev/og.png">
+<meta property="og:image" content="https://unlatchfs.dev/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Unlatch: Your VM, in Finder. npx unlatch">
+<meta property="og:image:alt" content="Unlatch: Your VM, in Finder. npx unlatchfs">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://unlatch.dev/og.png">
+<meta name="twitter:image" content="https://unlatchfs.dev/og.png">
 <title>Unlatch</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -612,16 +612,16 @@ table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font: 400 
         <div class="syn">
           <div class="lab"><span>Run in a terminal</span><span>VM or Mac</span></div>
           <div class="line">
-            <pre><span class="p">$ </span>npx unlatch</pre>
-            <button class="copy" type="button" data-copy="npx unlatch">Copy</button>
+            <pre><span class="p">$ </span>npx unlatchfs</pre>
+            <button class="copy" type="button" data-copy="npx unlatchfs">Copy</button>
           </div>
           <p class="note">On the VM it shares the folder and prints the line for your Mac. On the Mac it lists the hosts in your <code>~/.ssh/config</code>.</p>
         </div>
         <div class="syn rev">
           <div class="lab"><span>Or paste into Claude Code or Codex on the VM</span><span>SKILL.md</span></div>
           <div class="line">
-            <pre><span class="p">&gt; </span>Set up Unlatch so I can browse this machine in Finder: <span class="url">https://unlatch.dev/SKILL.md</span></pre>
-            <button class="copy" type="button" data-copy="Set up Unlatch so I can browse this machine in Finder: https://unlatch.dev/SKILL.md">Copy</button>
+            <pre><span class="p">&gt; </span>Set up Unlatch so I can browse this machine in Finder: <span class="url">https://unlatchfs.dev/SKILL.md</span></pre>
+            <button class="copy" type="button" data-copy="Set up Unlatch so I can browse this machine in Finder: https://unlatchfs.dev/SKILL.md">Copy</button>
           </div>
           <p class="note">The agent runs the VM side and hands you one line for your Mac.</p>
         </div>
@@ -629,7 +629,7 @@ table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font: 400 
 
       <div class="status">
         <span><span class="dot" aria-hidden="true"></span>pre-release: not on npm yet</span>
-        <span>unlatch.dev coming soon</span>
+        <span>unlatchfs.dev coming soon</span>
         <span>MIT OR Apache-2.0</span>
         <span>macOS 13+ · Linux VM · your ssh</span>
       </div>
@@ -744,17 +744,17 @@ table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font: 400 
         <ol class="steps">
           <li><div class="k">VM<span>step 1</span></div><div>
             <p>In the folder you want to see, run:</p>
-            <div class="cmd"><pre><span class="p">$ </span>cd ~/api &amp;&amp; npx unlatch share</pre><button class="copy" type="button" data-copy="cd ~/api &amp;&amp; npx unlatch share">Copy</button></div>
+            <div class="cmd"><pre><span class="p">$ </span>cd ~/api &amp;&amp; npx unlatchfs share</pre><button class="copy" type="button" data-copy="cd ~/api &amp;&amp; npx unlatchfs share">Copy</button></div>
             <p>It checks inotify limits and free disk, then prints the line for your Mac. On a cloud VM behind NAT it looks up the public address. If it cannot tell how your Mac reaches the VM, it says so and leaves a spot for the host you ssh to.</p>
           </div></li>
           <li><div class="k">Mac<span>step 2</span></div><div>
             <p>Paste the line it printed. It looks like this:</p>
-            <div class="cmd"><pre><span class="p">$ </span>npx unlatch connect 'you@dev-box:~/api'</pre><button class="copy" type="button" data-copy="npx unlatch connect 'you@dev-box:~/api'">Copy</button></div>
+            <div class="cmd"><pre><span class="p">$ </span>npx unlatchfs connect 'you@dev-box:~/api'</pre><button class="copy" type="button" data-copy="npx unlatchfs connect 'you@dev-box:~/api'">Copy</button></div>
             <p>The first run installs the Unlatch app and may ask you to allow it in System Settings › Login Items. Then dev-box shows up in Finder under <b>Locations</b>.</p>
           </div></li>
           <li><div class="k">Linux<span>desktop</span></div><div>
             <p>No Finder? Add <code>--mount</code> for a FUSE mount instead.</p>
-            <div class="cmd"><pre><span class="p">$ </span>npx unlatch connect 'you@dev-box:~/api' --mount ~/dev-box</pre><button class="copy" type="button" data-copy="npx unlatch connect 'you@dev-box:~/api' --mount ~/dev-box">Copy</button></div>
+            <div class="cmd"><pre><span class="p">$ </span>npx unlatchfs connect 'you@dev-box:~/api' --mount ~/dev-box</pre><button class="copy" type="button" data-copy="npx unlatchfs connect 'you@dev-box:~/api' --mount ~/dev-box">Copy</button></div>
           </div></li>
         </ol>
       </div>
@@ -762,8 +762,8 @@ table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font: 400 
         <ol class="steps">
           <li><div class="k">VM<span>agent</span></div><div>
             <p>Paste this into Claude Code or Codex running on the VM:</p>
-            <div class="cmd"><pre class="wrap"><span class="p">&gt; </span>Set up Unlatch so I can browse this machine in Finder: <span class="url">https://unlatch.dev/SKILL.md</span></pre><button class="copy" type="button" data-copy="Set up Unlatch so I can browse this machine in Finder: https://unlatch.dev/SKILL.md">Copy</button></div>
-            <p>The agent reads SKILL.md, runs <code>npx -y unlatch share --json</code> and replies with one line. It never asks for a password or a key, and it never opens a port.</p>
+            <div class="cmd"><pre class="wrap"><span class="p">&gt; </span>Set up Unlatch so I can browse this machine in Finder: <span class="url">https://unlatchfs.dev/SKILL.md</span></pre><button class="copy" type="button" data-copy="Set up Unlatch so I can browse this machine in Finder: https://unlatchfs.dev/SKILL.md">Copy</button></div>
+            <p>The agent reads SKILL.md, runs <code>npx -y unlatchfs share --json</code> and replies with one line. It never asks for a password or a key, and it never opens a port.</p>
           </div></li>
           <li><div class="k">Mac<span>you</span></div><div>
             <p>Run the line the agent gave you in Terminal on your Mac. That is the whole install.</p>
@@ -778,9 +778,9 @@ table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font: 400 
     </div>
   </div>
   <aside class="margin">
-    <p><b>Pre-release.</b> The package is not on npm yet and unlatch.dev is coming soon. These are the commands that will work at release.</p>
+    <p><b>Pre-release.</b> The package is not on npm yet and unlatchfs.dev is coming soon. These are the commands that will work at release.</p>
     <p>If ssh needs a password, a 2FA code or a new host key, the Mac app shows ssh's own prompt when <b>you</b> connect. Background reconnects never prompt.</p>
-    <p>Something off? <code>npx unlatch doctor</code> checks the setup and says how to fix what it finds.</p>
+    <p>Something off? <code>npx unlatchfs doctor</code> checks the setup and says how to fix what it finds.</p>
   </aside>
 </section>
 
@@ -816,7 +816,7 @@ table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font: 400 
       </div>
     </div>
     <div class="points">
-      <div><h3>The daemon watches</h3><p>A small Rust daemon on the VM indexes the folder and watches it with inotify. On a network filesystem, or for folders beyond the VM's inotify watch limit, it falls back to polling every 1–30 s, and <code>npx unlatch doctor</code> tells you when.</p></div>
+      <div><h3>The daemon watches</h3><p>A small Rust daemon on the VM indexes the folder and watches it with inotify. On a network filesystem, or for folders beyond the VM's inotify watch limit, it falls back to polling every 1–30 s, and <code>npx unlatchfs doctor</code> tells you when.</p></div>
       <div><h3>One ssh connection</h3><p>Every change is pushed over a single ssh connection, using your <code>~/.ssh/config</code>, agent, ProxyJump and Tailscale. No ports are opened.</p></div>
       <div><h3>Listing never waits</h3><p>Your Mac keeps a local replica of the whole folder tree. Opening a folder in Finder is a local lookup. Heavy folders such as <code>node_modules</code> and <code>.git</code> are listed the first time you open them.</p></div>
       <div><h3>Contents on demand</h3><p>A file downloads the first time you open it. Small files are fetched ahead when you look at their folder. Saves go straight back.</p></div>
@@ -977,7 +977,7 @@ table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font: 400 
   <div class="body wide">
     <h2 class="hd" id="faq-h">Questions you might have.</h2>
     <div class="qa">
-      <div><h3>Can I use it today?</h3><p>Not yet. It is pre-release. The source is at <a href="https://github.com/sudhanshuheda/unlatch">github.com/sudhanshuheda/unlatch</a> (open source), the npm package is not published yet, and unlatch.dev is coming soon.</p></div>
+      <div><h3>Can I use it today?</h3><p>Not yet. It is pre-release. The source is at <a href="https://github.com/sudhanshuheda/unlatch">github.com/sudhanshuheda/unlatch</a> (open source), the npm package is not published yet, and unlatchfs.dev is coming soon.</p></div>
       <div><h3>Does it download my whole repo?</h3><p>No. Names, sizes and dates sync up front; heavy folders such as <code>node_modules</code> and <code>.git</code> are listed when you first open them. A file's contents download when you open it. Small files are fetched ahead when you look at their folder.</p></div>
       <div><h3>Does it work with Tailscale or a bastion host?</h3><p>If <code>ssh dev-box</code> works from your Mac, Unlatch can use it. It reads your <code>~/.ssh/config</code>, agent and ProxyJump.</p></div>
       <div><h3>What if my agent and I edit the same file?</h3><p>You get a conflict copy next to the file. Neither version is lost.</p></div>
@@ -993,17 +993,17 @@ table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font: 400 
   <div class="synopsis two" role="group" aria-label="Install again">
     <div class="syn">
       <div class="lab"><span>Run in a terminal</span><span>VM or Mac</span></div>
-      <div class="line"><pre><span class="p">$ </span>npx unlatch</pre><button class="copy" type="button" data-copy="npx unlatch">Copy</button></div>
+      <div class="line"><pre><span class="p">$ </span>npx unlatchfs</pre><button class="copy" type="button" data-copy="npx unlatchfs">Copy</button></div>
     </div>
     <div class="syn rev">
       <div class="lab"><span>Or paste into Claude Code or Codex on the VM</span><span>SKILL.md</span></div>
-      <div class="line"><pre><span class="p">&gt; </span>Set up Unlatch so I can browse this machine in Finder: <span class="url">https://unlatch.dev/SKILL.md</span></pre><button class="copy" type="button" data-copy="Set up Unlatch so I can browse this machine in Finder: https://unlatch.dev/SKILL.md">Copy</button></div>
+      <div class="line"><pre><span class="p">&gt; </span>Set up Unlatch so I can browse this machine in Finder: <span class="url">https://unlatchfs.dev/SKILL.md</span></pre><button class="copy" type="button" data-copy="Set up Unlatch so I can browse this machine in Finder: https://unlatchfs.dev/SKILL.md">Copy</button></div>
     </div>
   </div>
   <div class="status">
     <span><span class="dot" aria-hidden="true"></span>pre-release: not on npm yet</span>
     <span><a href="https://github.com/sudhanshuheda/unlatch">GitHub</a> (open source)</span>
-    <span><a href="https://unlatch.dev/SKILL.md">SKILL.md</a> · <a href="https://unlatch.dev/llms.txt">llms.txt</a> (unlatch.dev coming soon)</span>
+    <span><a href="https://unlatchfs.dev/SKILL.md">SKILL.md</a> · <a href="https://unlatchfs.dev/llms.txt">llms.txt</a> (unlatchfs.dev coming soon)</span>
   </div>
 </section>
 
@@ -1013,7 +1013,7 @@ table.cmp { border-collapse: collapse; width: 100%; min-width: 760px; font: 400 
   <div class="colophon">
     <span>Unlatch is a personal open-source project, not affiliated with any company.</span>
     <a href="https://github.com/sudhanshuheda/unlatch">github.com/sudhanshuheda/unlatch (open source)</a>
-    <span>unlatch.dev · coming soon</span>
+    <span>unlatchfs.dev · coming soon</span>
     <span>MIT OR Apache-2.0</span>
     <span>Prior art: <a href="https://github.com/alecdwm/sshdrive">sshdrive</a></span>
   </div>
